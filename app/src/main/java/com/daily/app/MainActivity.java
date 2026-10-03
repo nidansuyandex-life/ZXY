@@ -1,7 +1,9 @@
 package com.daily.app;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -27,14 +29,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // 初始化 TTS
         tts = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
-                int result = tts.setLanguage(Locale.US);
-                ttsReady = (result != TextToSpeech.LANG_MISSING_DATA
-                        && result != TextToSpeech.LANG_NOT_SUPPORTED);
-                if (ttsReady) {
-                    tts.setSpeechRate(0.9f);
+                int r = tts.setLanguage(Locale.US);
+                if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    tts.setLanguage(Locale.getDefault());
                 }
+                ttsReady = true;
             }
         });
 
@@ -51,18 +53,77 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMediaPlaybackRequiresUserGesture(false);
 
-        webView.addJavascriptInterface(new Object() {
+        // 注册 JavaScript 接口（命名类，更稳定）
+        webView.addJavascriptInterface(new Bridge(), "AndroidBridge");
 
-            @JavascriptInterface
-            public boolean isTtsReady() {
-                return ttsReady;
+        // WebViewClient：处理外链
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return handleUrl(request.getUrl().toString());
             }
 
-            @JavascriptInterface
-            public boolean speak(String text, String lang) {
-                if (tts == null || !ttsReady || text == null) return false;
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleUrl(url);
+            }
+        });
+
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        webView.loadUrl("file:///android_asset/index.html");
+    }
+
+    /**
+     * 统一处理 URL：
+     * - file:// http:// https:// 交给 WebView 处理
+     * - 其他 scheme 交给系统；没装 App 就跳浏览器搜索
+     */
+    private boolean handleUrl(String url) {
+        if (url == null) return true;
+
+        // 本地文件和网页走 WebView
+        if (url.startsWith("file://") || url.startsWith("http://") || url.startsWith("https://")) {
+            return false;
+        }
+
+        // 其他 scheme（自定义协议）：尝试打开 App
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            PackageManager pm = getPackageManager();
+            if (intent.resolveActivity(pm) != null) {
+                startActivity(intent);
+            } else {
+                openBrowser(url);
+            }
+        } catch (Exception e) {
+            openBrowser(url);
+        }
+        return true;
+    }
+
+    private void openBrowser(String originalUrl) {
+        try {
+            String query = Uri.encode(originalUrl);
+            Intent webIntent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://www.bing.com/search?q=" + query));
+            webIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(webIntent);
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * JavaScript 调用的桥接类。命名类，比匿名内部类更稳定。
+     */
+    private class Bridge {
+        @JavascriptInterface
+        public boolean speak(String text, String lang) {
+            if (tts == null || !ttsReady || text == null || text.length() == 0) return false;
+            try {
                 Locale locale;
                 if (lang != null && lang.startsWith("zh")) {
                     locale = Locale.CHINA;
@@ -74,67 +135,22 @@ public class MainActivity extends AppCompatActivity {
                 tts.setLanguage(locale);
                 tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "daily");
                 return true;
+            } catch (Exception e) {
+                return false;
             }
+        }
 
-            @JavascriptInterface
-            public void stopSpeak() {
+        @JavascriptInterface
+        public void stopSpeak() {
+            try {
                 if (tts != null) tts.stop();
-            }
+            } catch (Exception ignored) {}
+        }
 
-            /**
-             * 打开外部 App。scheme 是 App 协议，webUrl 是兜底网页。
-             */
-            @JavascriptInterface
-            public boolean openApp(String scheme, String webUrl) {
-                if (scheme == null || scheme.isEmpty()) return false;
-                try {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(scheme));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    return true;
-                } catch (Exception e) {
-                    // 没装 App，用浏览器打开兜底网页
-                    if (webUrl != null && !webUrl.isEmpty()) {
-                        try {
-                            Intent web = new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl));
-                            web.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(web);
-                            return true;
-                        } catch (Exception ignored) {}
-                    }
-                    return false;
-                }
-            }
-
-            @JavascriptInterface
-            public void openUrl(String url) {
-                if (url == null || url.isEmpty()) return;
-                try {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                } catch (Exception ignored) {}
-            }
-        }, "AndroidBridge");
-
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                String url = request.getUrl().toString();
-                if (url.startsWith("file://") || url.startsWith("http://") || url.startsWith("https://")) {
-                    return false;
-                }
-                try {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                } catch (Exception ignored) {}
-                return true;
-            }
-        });
-
-        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
-        webView.loadUrl("file:///android_asset/index.html");
+        @JavascriptInterface
+        public boolean isReady() {
+            return ttsReady;
+        }
     }
 
     @Override
@@ -152,7 +168,9 @@ public class MainActivity extends AppCompatActivity {
             tts.stop();
             tts.shutdown();
         }
-        if (webView != null) webView.destroy();
+        if (webView != null) {
+            webView.destroy();
+        }
         super.onDestroy();
     }
 }

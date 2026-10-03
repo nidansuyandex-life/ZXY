@@ -165,6 +165,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .hobby-card .h-cost{font-size:11.5px;color:var(--sub);}
 .growth-item{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #f0f1f6;}
 .growth-item:last-child{border:0;}
+.status-badge{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:750;flex-shrink:0;}
+.status-badge.ok{background:#ecfdf5;color:#047857;}
+.status-badge.warn{background:#fef3c7;color:#b45309;}
+.step-list{margin:0;padding-left:20px;}
+.step-list li{font-size:13.5px;line-height:1.85;color:#3f4658;}
 </style>
 </head>
 <body>
@@ -182,6 +187,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div id="sheet"></div>
 </div>
 <script>
+/* ============================================================
+   全局错误捕获，避免页面白屏
+   ============================================================ */
+window.addEventListener('error', (e) => {
+  console.error('页面错误：', e.message, e.filename, e.lineno);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('未处理的 Promise 错误：', e.reason);
+});
+
 /* ============================================================
    基础
    ============================================================ */
@@ -284,7 +299,6 @@ function loadDataFromGlobals(){
     DATA_STATUS.valve = SEED.VALVE_ALL.length;
     DATA_STATUS.valveOk = SEED.VALVE_ALL.length > 0;
   } else {
-    // 回退：内置少量示例
     SEED.VALVE = {
       '基础知识': [
         {q:'闸阀为什么不适合调节流量？',a:'闸板在开启过程中，流体阻力变化大。',key:'闸阀设计用于全开/全关。长期半开会造成闸板振动、密封面冲蚀。'},
@@ -314,6 +328,7 @@ function loadDataFromGlobals(){
     DATA_STATUS.wordsOk = false;
   }
 
+  window.__dataStatus = DATA_STATUS;
   console.log('数据加载状态：', DATA_STATUS);
 }
 
@@ -321,10 +336,22 @@ function loadDataFromGlobals(){
    Store
    ============================================================ */
 const Store = {
+  /* ---------- 每日学习 ---------- */
   getLearned(){ const v = LS.get('learned:' + DAY, []); return Array.isArray(v) ? v : []; },
   setLearned(arr){ LS.set('learned:' + DAY, arr); },
+
+  getKnowDone(){ const v = LS.get('know-done:' + DAY, []); return Array.isArray(v) ? v : []; },
+  setKnowDone(arr){ LS.set('know-done:' + DAY, arr); },
+  markTodayDone(key){ if (key === 'passage') LS.set('passage-done:' + DAY, true); },
+
+  /* ---------- 逻辑练习 ---------- */
   getThinkAns(name){ return LS.get('think-ans:' + name, ''); },
-  setThinkAns(name, text){ LS.set('think-ans:' + name, text); },
+  setThinkAns(name, text){
+    if (text && text.trim()) LS.set('think-ans:' + name, text);
+    else LS.del('think-ans:' + name);
+  },
+
+  /* ---------- 笔记 ---------- */
   getNote(q){ const v = LS.get('note:' + q, ''); return typeof v === 'string' ? v : ''; },
   setNote(q, text){ if (text && text.trim()) LS.set('note:' + q, text); else LS.del('note:' + q); },
   appendNote(q, text){ const cur = this.getNote(q); this.setNote(q, cur ? (cur + '\n\n' + text) : text); },
@@ -333,6 +360,8 @@ const Store = {
     SEED.VALVE_ALL.forEach(v => { const n = LS.get('note:' + v.q, ''); if (n && n.trim()) list.push({ q:v.q, cat:v.cat, note:n }); });
     return list;
   },
+
+  /* ---------- 连续打卡 ---------- */
   getStreak(){
     const d = LS.get('streak', null);
     if (!d || typeof d !== 'object') return { count:0, last:null, best:0 };
@@ -350,6 +379,8 @@ const Store = {
     LS.set('streak', next);
     return next;
   },
+
+  /* ---------- 间隔复习 ---------- */
   getSchedule(type){ const v = LS.get('schedule:' + type, {}); return (v && typeof v === 'object') ? v : {}; },
   setSchedule(type, obj){ LS.set('schedule:' + type, obj); },
   ensureSchedule(type, key){
@@ -372,6 +403,8 @@ const Store = {
     s[key] = cur;
     this.setSchedule(type, s);
   },
+
+  /* ---------- 错题本 ---------- */
   getWrongBook(){ return LS.get('wrong-book', []); },
   addWrong(type, key, q, userAnswer, feedback){
     const list = this.getWrongBook();
@@ -390,24 +423,27 @@ const Store = {
     const list = this.getWrongBook().filter(x => !(x.type === type && x.key === key));
     LS.set('wrong-book', list);
   },
+
+  /* ---------- 今日任务 ---------- */
   getTodayTasks(){
     const learned = this.getLearned();
-    const knowDone = LS.get('know-done:' + DAY, []);
+    const knowDone = this.getKnowDone();
     const passageDone = LS.get('passage-done:' + DAY, false);
     let exprDone = false;
     try { Object.keys(localStorage).forEach(k => { if (k.startsWith('expr-grade:' + todayStr())) exprDone = true; }); } catch(e){}
     const newsThink = LS.get('news-think-' + todayStr() + '-0', '');
+    const thinkDone = SEED.THINKING.filter(m => (LS.get('think-ans:' + m.name, '') || '').trim().length > 0).length;
     return [
       { key:'words', label:'学英语单词', current: learned.length, total: DAILY_WORD_COUNT, done: learned.length >= DAILY_WORD_COUNT },
       { key:'valve', label:'学阀门知识', current: knowDone.length, total: 5, done: knowDone.length >= 5 },
       { key:'passage', label:'朗读短文', current: passageDone ? 1 : 0, total: 1, done: !!passageDone },
+      { key:'logic', label:'逻辑思考练习', current: thinkDone, total: 1, done: thinkDone >= 1 },
       { key:'expr', label:'写表达练习', current: exprDone ? 1 : 0, total: 1, done: exprDone },
       { key:'news', label:'看今日世界', current: newsThink ? 1 : 0, total: 1, done: !!newsThink }
     ];
   },
-  getKnowDone(){ const v = LS.get('know-done:' + DAY, []); return Array.isArray(v) ? v : []; },
-  setKnowDone(arr){ LS.set('know-done:' + DAY, arr); },
-  markTodayDone(key){ if (key === 'passage') LS.set('passage-done:' + DAY, true); },
+
+  /* ---------- 周测 ---------- */
   getWeeklyTest(){
     const weekKey = new Date().getFullYear() + '-w' + Math.floor(DAY/7);
     const cached = LS.get('weekly-test:' + weekKey, null);
@@ -435,6 +471,21 @@ const Store = {
     t.takenAt = Date.now();
     LS.set('weekly-test:' + t.weekKey, t);
   },
+
+  /* ---------- 成长记录 ---------- */
+  getGrowth(){
+    const v = LS.get('growth', {});
+    return (v && typeof v === 'object') ? v : {};
+  },
+  setGrowth(obj){ LS.set('growth', obj && typeof obj === 'object' ? obj : {}); },
+  getGrowthLog(){ const v = LS.get('growth-log', []); return Array.isArray(v) ? v : []; },
+  pushGrowthLog(entry){
+    const log = this.getGrowthLog();
+    log.unshift(entry);
+    LS.set('growth-log', log.slice(0, 120));
+  },
+
+  /* ---------- AI 对话 ---------- */
   getAIHistory(){ const v = LS.get('ai-history', []); return Array.isArray(v) ? v : []; },
   addAIHistory(role, content){
     const h = this.getAIHistory();
@@ -442,6 +493,8 @@ const Store = {
     LS.set('ai-history', h.slice(-100));
   },
   clearAIHistory(){ LS.del('ai-history'); },
+
+  /* ---------- 工作 → 学习 ---------- */
   linkWorkToStudy(record){
     const plan = LS.get('study-plan', []);
     plan.unshift({ source:'work', problem: record.problem, solution: record.solution, keywords: record.keywords, date: record.date, t: Date.now() });
@@ -453,19 +506,28 @@ const Store = {
     plan.splice(idx, 1);
     LS.set('study-plan', plan);
   },
+
+  /* ---------- 导入导出 ---------- */
   buildExportData(){
     const thinkAnswers = {};
     SEED.THINKING.forEach(m => { const a = LS.get('think-ans:' + m.name, ''); if (a) thinkAnswers[m.name] = a; });
     const notes = {};
     SEED.VALVE_ALL.forEach(v => { const n = LS.get('note:' + v.q, ''); if (n) notes[v.q] = n; });
     const data = {
-      app:'daily', version:17, exportedAt:new Date().toISOString(),
+      app:'daily', version:18, exportedAt:new Date().toISOString(),
       learned:this.getLearned(), thinkAnswers, notes,
       schedule:{ english:this.getSchedule('english'), work:this.getSchedule('work') },
-      wrongBook:this.getWrongBook(), growth:LS.get('growth', {}), streak:this.getStreak(),
-      aiHistory: this.getAIHistory(), studyPlan: this.getStudyPlan()
+      wrongBook:this.getWrongBook(), growth:this.getGrowth(), growthLog:this.getGrowthLog(),
+      streak:this.getStreak(), aiHistory: this.getAIHistory(), studyPlan: this.getStudyPlan(),
+      workRecords: LS.get('work-records', [])
     };
-    try { Object.keys(localStorage).forEach(k => { if (k.startsWith('expr-ans:')) data[k]=LS.get(k,''); if (k.startsWith('expr-grade:')) data[k]=LS.get(k,null); }); } catch(e){}
+    try {
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('expr-ans:')) data[k] = LS.get(k,'');
+        if (k.startsWith('expr-grade:')) data[k] = LS.get(k,null);
+        if (k.startsWith('news-think-')) data[k] = LS.get(k,'');
+      });
+    } catch(e){}
     return data;
   },
   importDataFromText(text){
@@ -479,10 +541,12 @@ const Store = {
     }
     if (d.wrongBook) LS.set('wrong-book', d.wrongBook);
     if (d.growth) LS.set('growth', d.growth);
+    if (d.growthLog) LS.set('growth-log', d.growthLog);
     if (d.streak) LS.set('streak', d.streak);
     if (d.aiHistory) LS.set('ai-history', d.aiHistory);
     if (d.studyPlan) LS.set('study-plan', d.studyPlan);
-    Object.keys(d).forEach(k => { if (k.startsWith('expr-')) LS.set(k, d[k]); });
+    if (d.workRecords) LS.set('work-records', d.workRecords);
+    Object.keys(d).forEach(k => { if (k.startsWith('expr-') || k.startsWith('news-think-')) LS.set(k, d[k]); });
   },
   clearAll(){
     try{
@@ -490,17 +554,20 @@ const Store = {
         if (k.startsWith('learned:') || k.startsWith('think-ans:') ||
             k.startsWith('note:') || k.startsWith('schedule:') || k.startsWith('expr-') ||
             k.startsWith('know-done:') || k.startsWith('passage-done:') ||
-            ['wrong-book','growth','streak','ai-history','study-plan'].includes(k)) {
+            k.startsWith('news-think-') ||
+            ['wrong-book','growth','growth-log','streak','ai-history','study-plan','work-records'].includes(k)) {
           localStorage.removeItem(k);
         }
       });
     }catch(e){}
   },
+
+  /* ---------- 统计 ---------- */
   stats(){
     let exprCount = 0, noteCount = 0, thinkCount = 0;
     try { Object.keys(localStorage).forEach(k => { if (k.startsWith('expr-grade:')) exprCount++; }); } catch(e){}
     SEED.VALVE_ALL.forEach(v => { if (LS.get('note:' + v.q, '')) noteCount++; });
-    SEED.THINKING.forEach(m => { if (LS.get('think-ans:' + m.name, '')) thinkCount++; });
+    SEED.THINKING.forEach(m => { if ((LS.get('think-ans:' + m.name, '') || '').trim()) thinkCount++; });
     return {
       learnedCount: this.getLearned().length,
       knowDoneCount: this.getKnowDone().length,
@@ -596,12 +663,7 @@ const AI = {
     const d = await r.json();
     return (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || null;
   },
-  async scoreAnswer(question, answer, reference){
-    if (!this.enabled()) return null;
-    const system = `你是严格的行业导师。只输出 JSON：
-{"accuracy":0-100,"correct":["答对的点"],"missing":["遗漏的点"],"supplement":"工程师补充50-150字","keywords":["关键词1","关键词2","关键词3"]}`;
-    const user = `【问题】\n${question}\n\n【参考答案】\n${reference}\n\n【学员回答】\n${answer}\n\n请评分。`;
-    const content = await this.call(system, user, 1000, 0.2);
+  parseJSON(content){
     if (!content) return null;
     let json = content.trim();
     if (json.startsWith('```')) json = json.replace(/^```(?:json)?\s*/, '').replace(/```\s*$/, '');
@@ -609,18 +671,19 @@ const AI = {
     if (i >= 0 && j > i) json = json.slice(i, j + 1);
     return JSON.parse(json);
   },
+  async scoreAnswer(question, answer, reference){
+    if (!this.enabled()) return null;
+    const system = `你是严格的行业导师。只输出 JSON：
+{"accuracy":0-100,"correct":["答对的点"],"missing":["遗漏的点"],"supplement":"工程师补充50-150字","keywords":["关键词1","关键词2","关键词3"]}`;
+    const user = `【问题】\n${question}\n\n【参考答案】\n${reference}\n\n【学员回答】\n${answer}\n\n请评分。`;
+    return this.parseJSON(await this.call(system, user, 1000, 0.2));
+  },
   async judgeWord(word, userAnswer, correctCn){
     if (!this.enabled()) return null;
     const system = `你是英语单词判卷老师。只输出 JSON：
 {"correct":true/false,"score":0-100,"feedback":"一句话点评（20字以内）"}`;
     const user = `单词：${word}\n参考答案：${correctCn}\n学员回答：${userAnswer}`;
-    const content = await this.call(system, user, 200, 0.1);
-    if (!content) return null;
-    let json = content.trim();
-    if (json.startsWith('```')) json = json.replace(/^```(?:json)?\s*/, '').replace(/```\s*$/, '');
-    const i = json.indexOf('{'), j = json.lastIndexOf('}');
-    if (i >= 0 && j > i) json = json.slice(i, j + 1);
-    return JSON.parse(json);
+    return this.parseJSON(await this.call(system, user, 200, 0.1));
   },
   async answerQuestion(question, context){
     if (!this.enabled()) return null;
@@ -641,13 +704,7 @@ const AI = {
 要求：${guide}
 只输出 JSON：
 {"score":0-100,"level":"优秀/良好/合格/待提升","strengths":["优点1","优点2"],"issues":["问题1","问题2"],"improved":"修改后的完整回答","advice":"一句话核心建议（20字以内）"}`;
-    const content = await this.call(system, '用户的回答：\n' + answer, 1200, 0.3);
-    if (!content) return null;
-    let json = content.trim();
-    if (json.startsWith('```')) json = json.replace(/^```(?:json)?\s*/, '').replace(/```\s*$/, '');
-    const i = json.indexOf('{'), j = json.lastIndexOf('}');
-    if (i >= 0 && j > i) json = json.slice(i, j + 1);
-    return JSON.parse(json);
+    return this.parseJSON(await this.call(system, '用户的回答：\n' + answer, 1200, 0.3));
   }
 };
 
@@ -658,9 +715,12 @@ function hasAndroidBridge(){
   return !!(window.AndroidBridge && typeof window.AndroidBridge.speak === 'function');
 }
 function stopSpeak(){
-  try{ if (hasAndroidBridge()) window.AndroidBridge.stopSpeak(); }catch(e){}
-  if ('speechSynthesis' in window){ try{ speechSynthesis.cancel(); }catch(e){} }
-  document.querySelectorAll('.playing').forEach(b => b.classList.remove('playing'));
+  try{ if (window.AndroidBridge && window.AndroidBridge.stopSpeak) window.AndroidBridge.stopSpeak(); }catch(e){}
+  try{ if ('speechSynthesis' in window) speechSynthesis.cancel(); }catch(e){}
+  document.querySelectorAll('.playing').forEach(b => {
+    b.classList.remove('playing');
+    if (b.dataset.idle) b.textContent = b.dataset.idle;
+  });
 }
 function toggleSpeak(text, lang, btn){
   if (!text) return;
@@ -668,31 +728,40 @@ function toggleSpeak(text, lang, btn){
   stopSpeak();
   if (wasPlaying) return;
 
-  // 尝试 Android 原生 TTS
-  if (hasAndroidBridge()){
+  // 优先用 Android 原生 TTS
+  if (window.AndroidBridge){
     try{
-      const ok = window.AndroidBridge.speak(text, lang || 'en-US');
+      let ok = false;
+      if (window.AndroidBridge.isReady) ok = window.AndroidBridge.isReady();
+      else ok = true;
       if (ok){
-        if (btn) btn.classList.add('playing');
-        const dur = Math.max(1500, text.length * (lang && lang.startsWith('zh') ? 220 : 320));
-        setTimeout(() => { if (btn) btn.classList.remove('playing'); }, dur);
-        return;
+        const spoken = window.AndroidBridge.speak(text, lang || 'en-US');
+        if (spoken){
+          if (btn){ btn.classList.add('playing'); if (btn.dataset.busy) btn.textContent = btn.dataset.busy; }
+          const dur = Math.max(1500, text.length * (lang && lang.startsWith('zh') ? 220 : 320));
+          setTimeout(() => { if (btn){ btn.classList.remove('playing'); if (btn.dataset.idle) btn.textContent = btn.dataset.idle; } }, dur);
+          return;
+        }
       }
     }catch(e){ console.warn('Android TTS 失败：', e); }
   }
 
-  // 回退到浏览器 TTS
-  if (!('speechSynthesis' in window)){ toast('语音朗读不可用'); return; }
-  const u = new SpeechSynthesisUtterance(text);
-  const accent = LS.get('voice-accent', 'en-US');
-  const speed = LS.get('voice-speed', 0.85);
-  u.lang = lang && lang.startsWith('zh') ? lang : accent;
-  u.rate = lang && lang.startsWith('zh') ? 1 : speed;
-  const v = (speechSynthesis.getVoices() || []).find(x => x.lang.replace('_','-').toLowerCase().startsWith(u.lang.toLowerCase()));
-  if (v) u.voice = v;
-  if (btn) btn.classList.add('playing');
-  u.onend = u.onerror = () => { if (btn) btn.classList.remove('playing'); };
-  speechSynthesis.speak(u);
+  // 回退：浏览器 TTS
+  if (!('speechSynthesis' in window)){ toast('当前环境不支持语音朗读'); return; }
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    const accent = LS.get('voice-accent', 'en-US');
+    const speed = LS.get('voice-speed', 0.85);
+    u.lang = lang && lang.startsWith('zh') ? lang : accent;
+    u.rate = lang && lang.startsWith('zh') ? 1 : speed;
+    const v = (speechSynthesis.getVoices() || []).find(x => x.lang.replace('_','-').toLowerCase().startsWith(u.lang.toLowerCase()));
+    if (v) u.voice = v;
+    if (btn){ btn.classList.add('playing'); if (btn.dataset.busy) btn.textContent = btn.dataset.busy; }
+    u.onend = u.onerror = () => { if (btn){ btn.classList.remove('playing'); if (btn.dataset.idle) btn.textContent = btn.dataset.idle; } };
+    speechSynthesis.speak(u);
+  }catch(err){
+    toast('语音朗读失败：' + err.message);
+  }
 }
 function copyText(text){
   return new Promise(resolve => {
@@ -710,6 +779,20 @@ function copyText(text){
     }catch(e){ resolve(false); }
   });
 }
+function openExternal(url){
+  try{
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => a.remove(), 120);
+  }catch(err){
+    console.warn('打开链接失败：', err);
+    toast('打开失败');
+  }
+}
 
 /* ============================================================
    State
@@ -721,11 +804,14 @@ const state = {
   discoverSub:'news',
   recommendCat:'书',
   openKnow:null,
+  openThink:null,
+  thinkHint:null,
   searchQuery:'',
   valveCat:'全部',
   review:null,
   aiLoading:false,
   aiAnsweringFor:null,
+  aiInput:'',
   passageHidden:false,
   currentWords:[],
   aiRole: LS.get('ai-role', 'engineer'),
@@ -756,6 +842,7 @@ async function studyView(){
     { id:'english', label:'英语' },
     { id:'valve', label:'专业' },
     { id:'general', label:'通识' },
+    { id:'logic', label:'逻辑' },
     { id:'express', label:'表达' },
     { id:'weekly', label:'周测' }
   ];
@@ -764,6 +851,7 @@ async function studyView(){
   else if (sub === 'english') content = englishSection();
   else if (sub === 'valve') content = valveSection();
   else if (sub === 'general') content = generalSection();
+  else if (sub === 'logic') content = logicSection();
   else if (sub === 'express') content = expressSection();
   else if (sub === 'weekly') content = weeklyTestSection();
   return `
@@ -805,8 +893,8 @@ function todaySection(){
   <div class="hobby-grid">
     <button class="hobby-card" data-act="studySub" data-sub="english"><span class="emoji">🔤</span><span class="h-name">英语</span><span class="h-cost">${DAILY_WORD_COUNT} 个单词</span></button>
     <button class="hobby-card" data-act="studySub" data-sub="valve"><span class="emoji">⚙️</span><span class="h-name">专业知识</span><span class="h-cost">${SEED.VALVE_ALL.length} 条</span></button>
+    <button class="hobby-card" data-act="studySub" data-sub="logic"><span class="emoji">🧠</span><span class="h-name">逻辑思考</span><span class="h-cost">5 种思维模型</span></button>
     <button class="hobby-card" data-act="studySub" data-sub="express"><span class="emoji">💬</span><span class="h-name">表达训练</span><span class="h-cost">每天一题</span></button>
-    <button class="hobby-card" data-act="studySub" data-sub="general"><span class="emoji">🌍</span><span class="h-name">通识知识</span><span class="h-cost">每天 3 个</span></button>
   </div>`;
 }
 
@@ -839,7 +927,6 @@ function englishSection(){
   const words = dailyPick(SEED.WORDS, DAILY_WORD_COUNT, 11);
   state.currentWords = words;
   const learned = Store.getLearned();
-  const done = words.filter(w => learned.includes(w.w)).length;
   const due = Store.getDueKeys('english');
   const dueItems = due.map(k => SEED.WORDS.find(w => w.w === k)).filter(Boolean);
   return `
@@ -900,7 +987,6 @@ function valveSection(){
     list = SEED.VALVE[cat] || [];
   }
   const due = Store.getDueKeys('work');
-  const dueItems = due.map(k => SEED.VALVE_ALL.find(v => v.q === k)).filter(Boolean);
   const wrongBook = Store.getWrongBook().filter(x => x.type === 'work');
   const cats = ['全部', ...Object.keys(SEED.VALVE)];
   const loaded = DATA_STATUS.valveOk;
@@ -911,9 +997,9 @@ function valveSection(){
     <div style="font-size:13.5px;opacity:.92;line-height:1.7;">${cats.length - 1} 大类 ${loaded ? '· 数据已加载' : '· 使用内置数据'}</div>
   </div>
   ${!loaded ? `<div class="tip-card" style="background:#fef3c7;border-color:#fde68a;color:#92400e;">⚠️ valve.js 未加载成功，当前使用内置的 ${SEED.VALVE_ALL.length} 条数据。</div>` : ''}
-  ${dueItems.length ? `
+  ${due.length ? `
   <div class="card" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fbbf24;">
-    <div style="font-size:13px;font-weight:750;color:#92400e;margin-bottom:8px;">🔁 巩固旧知识（${dueItems.length} 条待复习）</div>
+    <div style="font-size:13px;font-weight:750;color:#92400e;margin-bottom:8px;">🔁 巩固旧知识（${due.length} 条待复习）</div>
     <button class="btn" style="background:#92400e;color:#fff;width:100%;" data-act="startReview" data-type="work">开始复习 →</button>
   </div>` : ''}
   ${wrongBook.length ? `
@@ -989,9 +1075,58 @@ function generalSection(){
   `).join('')}`;
 }
 
+/* ---------- 逻辑思考 ---------- */
+function logicSection(){
+  const list = SEED.THINKING;
+  const doneCount = list.filter(m => (Store.getThinkAns(m.name) || '').trim()).length;
+  return `
+  <div class="card" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:0;">
+    <div style="font-size:11px;letter-spacing:1.5px;font-weight:750;opacity:.75;margin-bottom:8px;">THINKING MODELS</div>
+    <div style="font-size:19px;font-weight:750;margin-bottom:10px;">5 个思维模型</div>
+    <div style="font-size:13.5px;opacity:.92;line-height:1.7;">今日已练 ${doneCount}/${list.length} 个。点卡片展开练习。</div>
+  </div>
+  ${list.map(m => logicCard(m)).join('')}
+  <div class="tip-card">💡 思维模型不是知识，是工具。光看不练等于没学。</div>`;
+}
+
+function logicCard(m){
+  const ans = Store.getThinkAns(m.name);
+  const open = state.openThink === m.name;
+  const hasAns = !!(ans || '').trim();
+  return `<div class="card know ${open?'open':''}" data-think="${esc(m.name)}">
+    <div style="cursor:pointer" data-act="thinkToggle">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="font-size:26px;line-height:1;flex-shrink:0;">${m.emoji}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="know-q" style="display:flex;align-items:center;gap:8px;">
+            ${esc(m.name)}
+            ${hasAns?'<span style="font-size:11px;color:#047857;font-weight:600;background:#ecfdf5;padding:1px 7px;border-radius:5px;">✓ 已练</span>':''}
+          </div>
+          <div style="font-size:12.5px;color:var(--sub);margin-top:6px;line-height:1.6;">${esc(m.core)}</div>
+        </div>
+        <span style="font-size:12px;color:var(--sub);flex-shrink:0;">${open?'▴':'▾'}</span>
+      </div>
+    </div>
+    <div class="know-body">
+      <div class="know-key">
+        <b>怎么做：</b>
+        <ol class="step-list" style="margin-top:6px;">${m.how.map(h => `<li>${esc(h)}</li>`).join('')}</ol>
+      </div>
+      <div class="qa-block">
+        <div class="qa-label">✏️ 今日练习</div>
+        <div style="font-size:13.5px;line-height:1.78;color:#3f4658;margin-bottom:10px;">${esc(m.exercise)}</div>
+        <textarea class="qa-input" data-think-ans="${esc(m.name)}" placeholder="写下你的思考过程…">${esc(ans)}</textarea>
+        <div class="qa-row">
+          <button class="qa-btn ghost" data-act="thinkHint" data-name="${esc(m.name)}">${state.thinkHint === m.name ? '🙈 收起提示' : '💡 看提示'}</button>
+        </div>
+        ${state.thinkHint === m.name ? `<div class="qa-answer"><div class="qa-answer-head">💡 参考思路</div><div class="qa-answer-body">${esc(m.hint)}</div></div>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
 function expressSection(){
   const passage = dailyPick(SEED.EXPRESS_PASSAGES, 1, 41)[0];
-  // 排除英语表达
   const sceneCats = Object.keys(SEED.SCENES).filter(c => c !== '英语表达');
   const allScenes = sceneCats.flatMap(c => SEED.SCENES[c].map(s => ({ ...s, cat:c })));
   const todayScene = dailyPick(allScenes, 1, 47)[0];
@@ -1192,112 +1327,133 @@ function recommendSection(){
    我的视图
    ============================================================ */
 async function meView(){
-  const stats = Store.stats();
-  const streak = Store.getStreak();
-  const notes = Store.getAllNotes();
-  const growth = Store.getGrowth() || {};
-  const ds = DATA_STATUS;
-  return `
-  <div class="hero">
-    <div class="hero-k">我的</div>
-    <h1>数据管理</h1>
-    ${streak.count > 0 ? `<div style="margin-top:12px"><span class="streak-badge" style="font-size:13px;padding:5px 12px;">🔥 已连续学习 ${streak.count} 天 · 最长 ${streak.best} 天</span></div>` : ''}
-  </div>
-
-  <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:12px;">📊 数据加载状态</div>
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;">
-      <span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;${ds.valveOk?'background:#ecfdf5;color:#047857;':'background:#fef3c7;color:#b45309;'}">${ds.valveOk?'✓ 已加载':'⚠ 未加载'}</span>
-      <span style="flex:1;color:#4b5265;">阀门知识库</span>
-      <span style="font-weight:700;color:${ds.valveOk?'#047857':'#b45309'};">${ds.valve} 条</span>
+  try{
+    const stats = Store.stats();
+    const streak = Store.getStreak();
+    const notes = Store.getAllNotes();
+    const growth = Store.getGrowth() || {};
+    const dataStatus = window.__dataStatus || { valve: 0, words: 0, valveOk: false, wordsOk: false };
+    return `
+    <div class="hero">
+      <div class="hero-k">我的</div>
+      <h1>数据管理</h1>
+      ${streak.count > 0 ? `<div style="margin-top:12px"><span class="streak-badge" style="font-size:13px;padding:5px 12px;">🔥 已连续学习 ${streak.count} 天 · 最长 ${streak.best} 天</span></div>` : ''}
     </div>
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;">
-      <span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;${ds.wordsOk?'background:#ecfdf5;color:#047857;':'background:#fef3c7;color:#b45309;'}">${ds.wordsOk?'✓ 已加载':'⚠ 未加载'}</span>
-      <span style="flex:1;color:#4b5265;">英语单词库</span>
-      <span style="font-weight:700;color:${ds.wordsOk?'#047857':'#b45309'};">${ds.words} 条</span>
-    </div>
-    ${!ds.valveOk ? `<div style="font-size:12px;color:#b45309;line-height:1.7;margin-top:8px;padding:10px 12px;background:#fef3c7;border-radius:10px;">⚠️ 请确认 assets/data/valve.js 存在且内容以 <code>window.__VALVE_DATA = </code> 开头。</div>` : ''}
-  </div>
 
-  <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:12px;">📅 累计数据</div>
-    <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
-      <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.learnedCount}</span>
-      <span style="font-size:13px;color:#4b5265;font-weight:600;">个英语单词今日已学</span>
+    <div class="card">
+      <div style="font-size:14px;font-weight:750;margin-bottom:12px;">📊 数据加载状态</div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;">
+        <span class="status-badge ${dataStatus.valveOk?'ok':'warn'}">${dataStatus.valveOk?'✓':'⚠'}</span>
+        <span style="flex:1;color:#4b5265;">阀门知识库</span>
+        <span style="font-weight:700;color:${dataStatus.valveOk?'#047857':'#b45309'};">${dataStatus.valve} 条</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;">
+        <span class="status-badge ${dataStatus.wordsOk?'ok':'warn'}">${dataStatus.wordsOk?'✓':'⚠'}</span>
+        <span style="flex:1;color:#4b5265;">英语单词库</span>
+        <span style="font-weight:700;color:${dataStatus.wordsOk?'#047857':'#b45309'};">${dataStatus.words} 条</span>
+      </div>
+      ${!dataStatus.valveOk ? `<div style="font-size:12px;color:#b45309;line-height:1.7;margin-top:8px;padding:10px 12px;background:#fef3c7;border-radius:10px;">⚠️ valve.js 未加载成功。请确认 data/valve.js 里的 window.__VALVE_DATA 格式正确。</div>` : ''}
     </div>
-    <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
-      <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.dueWork}</span>
-      <span style="font-size:13px;color:#4b5265;font-weight:600;">条待复习阀门知识</span>
+
+    <div class="card">
+      <div style="font-size:14px;font-weight:750;margin-bottom:12px;">📅 累计数据</div>
+      <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
+        <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.learnedCount}</span>
+        <span style="font-size:13px;color:#4b5265;font-weight:600;">个英语单词今日已学</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
+        <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.dueWork}</span>
+        <span style="font-size:13px;color:#4b5265;font-weight:600;">条待复习阀门知识</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
+        <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.wrongCount}</span>
+        <span style="font-size:13px;color:#4b5265;font-weight:600;">条错题</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
+        <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.thinkCount}</span>
+        <span style="font-size:13px;color:#4b5265;font-weight:600;">道逻辑练习</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;">
+        <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.totalValve}</span>
+        <span style="font-size:13px;color:#4b5265;font-weight:600;">条知识库总量</span>
+      </div>
     </div>
-    <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
-      <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.wrongCount}</span>
-      <span style="font-size:13px;color:#4b5265;font-weight:600;">条错题</span>
+
+    <div class="card">
+      <div style="font-size:14px;font-weight:750;margin-bottom:8px;">💭 今日感悟</div>
+      <textarea class="answer-input" id="growthReflection" style="min-height:80px" placeholder="今天有什么感受、发现、想法…">${esc(growth.reflection || '')}</textarea>
+      <div style="font-size:14px;font-weight:750;margin:16px 0 8px;">🎯 明天调整</div>
+      <textarea class="answer-input" id="growthTomorrow" style="min-height:70px" placeholder="明天想改什么、做什么…">${esc(growth.tomorrow || '')}</textarea>
+      <button class="btn primary wide" style="margin-top:14px" data-act="saveGrowth">保存今天</button>
     </div>
-    <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;">
-      <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.totalValve}</span>
-      <span style="font-size:13px;color:#4b5265;font-weight:600;">条知识库总量</span>
+
+    <div class="card">
+      <div style="font-size:14px;font-weight:750;margin-bottom:6px;">🔊 语音设置</div>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:10px;">设置英语单词和句子的朗读口音、语速。</div>
+      <div style="font-size:12.5px;font-weight:650;color:#4b5265;margin-bottom:6px;">口音</div>
+      <div class="accent-row">
+        <button class="accent-btn ${LS.get('voice-accent','en-US')==='en-US'?'on':''}" data-act="setAccent" data-accent="en-US">🇺🇸 美音</button>
+        <button class="accent-btn ${LS.get('voice-accent','en-US')==='en-GB'?'on':''}" data-act="setAccent" data-accent="en-GB">🇬🇧 英音</button>
+      </div>
+      <div style="font-size:12.5px;font-weight:650;color:#4b5265;margin:14px 0 6px;">语速</div>
+      <div class="speed-row">
+        <button class="speed-btn ${LS.get('voice-speed',0.85)===0.65?'on':''}" data-act="setSpeed" data-speed="0.65">慢</button>
+        <button class="speed-btn ${LS.get('voice-speed',0.85)===0.85?'on':''}" data-act="setSpeed" data-speed="0.85">正常</button>
+        <button class="speed-btn ${LS.get('voice-speed',0.85)===1.1?'on':''}" data-act="setSpeed" data-speed="1.1">快</button>
+      </div>
+      <div style="font-size:11.5px;color:var(--sub);margin-top:10px;">TTS 状态：${window.AndroidBridge ? '✓ 已连接' : '× 未连接'}</div>
     </div>
-  </div>
 
-  <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:8px;">💭 今日感悟</div>
-    <textarea class="answer-input" id="growthReflection" style="min-height:80px" placeholder="今天有什么感受、发现、想法…">${esc(growth.reflection || '')}</textarea>
-    <div style="font-size:14px;font-weight:750;margin:16px 0 8px;">🎯 明天调整</div>
-    <textarea class="answer-input" id="growthTomorrow" style="min-height:70px" placeholder="明天想改什么、做什么…">${esc(growth.tomorrow || '')}</textarea>
-    <button class="btn primary wide" style="margin-top:14px" data-act="saveGrowth">保存今天</button>
-  </div>
+    ${notes.length ? `
+    <div class="card">
+      <div style="font-size:14px;font-weight:750;margin-bottom:8px;">📝 我的笔记（${notes.length} 条）</div>
+      ${notes.slice(0, 5).map(n => `<div style="padding:12px 0;border-bottom:1px dashed #eceef4;">
+        <div style="font-size:11px;font-weight:750;color:var(--brand);margin-bottom:4px;">${esc(n.cat)}</div>
+        <div style="font-size:13.5px;font-weight:650;line-height:1.5;color:#2b3244;margin-bottom:8px;">${esc(n.q)}</div>
+        <div style="font-size:12.5px;line-height:1.7;color:#4b5265;background:#fafbfe;padding:10px 12px;border-radius:10px;white-space:pre-wrap;">${esc(n.note)}</div>
+      </div>`).join('')}
+      ${notes.length > 5 ? `<div style="font-size:12px;color:var(--sub);text-align:center;padding-top:10px;">还有 ${notes.length - 5} 条…</div>` : ''}
+    </div>` : ''}
 
-  <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:6px;">🔊 语音设置</div>
-    <div style="font-size:12px;color:var(--sub);margin-bottom:10px;">设置英语单词和句子的朗读口音、语速。</div>
-    <div style="font-size:12.5px;font-weight:650;color:#4b5265;margin-bottom:6px;">口音</div>
-    <div class="accent-row">
-      <button class="accent-btn ${LS.get('voice-accent','en-US')==='en-US'?'on':''}" data-act="setAccent" data-accent="en-US">🇺🇸 美音</button>
-      <button class="accent-btn ${LS.get('voice-accent','en-US')==='en-GB'?'on':''}" data-act="setAccent" data-accent="en-GB">🇬🇧 英音</button>
+    <div class="card">
+      <div style="font-size:14px;font-weight:750;margin-bottom:12px;">🤖 AI 助手配置</div>
+      <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:12px;">配置后可用：专业知识问答、复习评分、表达评分、AI 办公。推荐 DeepSeek。</div>
+      <label style="display:block;font-size:12.5px;font-weight:650;color:#4b5265;margin:13px 0 6px;">服务商</label>
+      <select id="aiProvider" style="width:100%;border:1px solid #e6e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fafbfe;">
+        <option value="none" ${AI.provider==='none'?'selected':''}>不启用</option>
+        <option value="deepseek" ${AI.provider==='deepseek'?'selected':''}>DeepSeek（推荐）</option>
+        <option value="qwen" ${AI.provider==='qwen'?'selected':''}>通义千问</option>
+        <option value="zhipu" ${AI.provider==='zhipu'?'selected':''}>智谱 GLM</option>
+        <option value="custom" ${AI.provider==='custom'?'selected':''}>自定义</option>
+      </select>
+      <label style="display:block;font-size:12.5px;font-weight:650;color:#4b5265;margin:13px 0 6px;">API Key</label>
+      <input type="password" id="aiKey" placeholder="sk-..." value="${esc(AI.apiKey)}" style="width:100%;border:1px solid #e6e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fafbfe;">
+      <label style="display:block;font-size:12.5px;font-weight:650;color:#4b5265;margin:13px 0 6px;">模型名（留空用默认）</label>
+      <input type="text" id="aiModel" placeholder="deepseek-chat" value="${esc(AI.model)}" style="width:100%;border:1px solid #e6e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fafbfe;">
+      <label style="display:block;font-size:12.5px;font-weight:650;color:#4b5265;margin:13px 0 6px;">自定义 Base URL（仅「自定义」时填）</label>
+      <input type="text" id="aiCustomBase" placeholder="https://.../v1/chat/completions" value="${esc(AI.customBase)}" style="width:100%;border:1px solid #e6e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fafbfe;">
+      <button class="btn primary wide" style="margin-top:14px" data-act="saveAI">保存配置</button>
+      <div style="margin-top:10px;font-size:12px;padding:8px 12px;border-radius:9px;${AI.enabled()?'background:#ecfdf5;color:#047857;':'background:#f1f2f9;color:#6b7280;'}">${AI.enabled() ? `✅ 已启用 · ${AI.provider}` : '⚪ 未启用 · 使用本地关键词判卷'}</div>
     </div>
-    <div style="font-size:12.5px;font-weight:650;color:#4b5265;margin:14px 0 6px;">语速</div>
-    <div class="speed-row">
-      <button class="speed-btn ${LS.get('voice-speed',0.85)===0.65?'on':''}" data-act="setSpeed" data-speed="0.65">慢</button>
-      <button class="speed-btn ${LS.get('voice-speed',0.85)===0.85?'on':''}" data-act="setSpeed" data-speed="0.85">正常</button>
-      <button class="speed-btn ${LS.get('voice-speed',0.85)===1.1?'on':''}" data-act="setSpeed" data-speed="1.1">快</button>
+
+    <div class="card">
+      <div style="font-size:14px;font-weight:750;margin-bottom:6px;">数据备份</div>
+      <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">导出时会显示备份文本，你可以复制到其他地方保存。导入时把备份文本粘贴回来。</div>
+      <button class="btn primary wide" data-act="exportData">📤 导出备份（复制文本）</button>
+      <button class="btn wide" style="background:#f1f2f9;color:#4b5265;margin-top:8px;" data-act="importData">📥 导入备份（粘贴文本）</button>
     </div>
-  </div>
 
-  <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:12px;">🤖 AI 助手配置</div>
-    <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:12px;">配置后可用：专业知识问答、复习评分、表达评分、AI 办公。推荐 DeepSeek。</div>
-    <label style="display:block;font-size:12.5px;font-weight:650;color:#4b5265;margin:13px 0 6px;">服务商</label>
-    <select id="aiProvider" style="width:100%;border:1px solid #e6e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fafbfe;">
-      <option value="none" ${AI.provider==='none'?'selected':''}>不启用</option>
-      <option value="deepseek" ${AI.provider==='deepseek'?'selected':''}>DeepSeek（推荐）</option>
-      <option value="qwen" ${AI.provider==='qwen'?'selected':''}>通义千问</option>
-      <option value="zhipu" ${AI.provider==='zhipu'?'selected':''}>智谱 GLM</option>
-      <option value="custom" ${AI.provider==='custom'?'selected':''}>自定义</option>
-    </select>
-    <label style="display:block;font-size:12.5px;font-weight:650;color:#4b5265;margin:13px 0 6px;">API Key</label>
-    <input type="password" id="aiKey" placeholder="sk-..." value="${esc(AI.apiKey)}" style="width:100%;border:1px solid #e6e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fafbfe;">
-    <label style="display:block;font-size:12.5px;font-weight:650;color:#4b5265;margin:13px 0 6px;">模型名（留空用默认）</label>
-    <input type="text" id="aiModel" placeholder="deepseek-chat" value="${esc(AI.model)}" style="width:100%;border:1px solid #e6e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fafbfe;">
-    <label style="display:block;font-size:12.5px;font-weight:650;color:#4b5265;margin:13px 0 6px;">自定义 Base URL（仅「自定义」时填）</label>
-    <input type="text" id="aiCustomBase" placeholder="https://.../v1/chat/completions" value="${esc(AI.customBase)}" style="width:100%;border:1px solid #e6e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fafbfe;">
-    <button class="btn primary wide" style="margin-top:14px" data-act="saveAI">保存配置</button>
-    <div style="margin-top:10px;font-size:12px;padding:8px 12px;border-radius:9px;${AI.enabled()?'background:#ecfdf5;color:#047857;':'background:#f1f2f9;color:#6b7280;'}">${AI.enabled() ? `✅ 已启用 · ${AI.provider}` : '⚪ 未启用 · 使用本地关键词判卷'}</div>
-  </div>
+    <div class="card" style="border:1px solid #fee2e2;">
+      <div style="font-size:14px;font-weight:750;margin-bottom:6px;color:#dc2626;">危险操作</div>
+      <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">清空本设备所有学习进度。建议先导出备份。</div>
+      <button class="btn danger wide" data-act="clearData">🗑 清空本设备数据</button>
+    </div>
 
-  <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:6px;">数据备份</div>
-    <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">导出时会显示备份文本，复制到便签保存。导入时把文本粘贴回来。</div>
-    <button class="btn primary wide" data-act="exportData">📤 导出备份（复制文本）</button>
-    <button class="btn wide" style="background:#f1f2f9;color:#4b5265;margin-top:8px;" data-act="importData">📥 导入备份（粘贴文本）</button>
-  </div>
-
-  <div class="card" style="border:1px solid #fee2e2;">
-    <div style="font-size:14px;font-weight:750;margin-bottom:6px;color:#dc2626;">危险操作</div>
-    <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">清空本设备所有学习进度。建议先导出备份。</div>
-    <button class="btn danger wide" data-act="clearData">🗑 清空本设备数据</button>
-  </div>
-
-  <div class="foot-note">数据保存在本设备 · 知识库打包在 App 内</div>`;
+    <div class="foot-note">数据保存在本设备 · 知识库打包在 App 内</div>`;
+  }catch(e){
+    console.error('meView 渲染失败：', e);
+    return `<div class="tip-card">我的页面加载失败：${esc(e.message)}<br><br>请把这条错误信息发给开发者。</div>`;
+  }
 }
 
 /* ============================================================
@@ -1686,6 +1842,10 @@ view.addEventListener('input', (e) => {
   if (el.dataset && el.dataset.noteQ){ Store.setNote(el.dataset.noteQ, el.value); return; }
   if (el.dataset && el.dataset.qaQ){ LS.set('ask-text:' + el.dataset.qaQ, el.value); return; }
   if (el.dataset && el.dataset.newsThink){ LS.set(el.dataset.newsThink, el.value); return; }
+  if (el.dataset && el.dataset.thinkAns){
+    Store.setThinkAns(el.dataset.thinkAns, el.value);
+    return;
+  }
 });
 
 view.addEventListener('click', async (e) => {
@@ -1704,6 +1864,7 @@ view.addEventListener('click', async (e) => {
     if (key === 'words') state.studySub = 'english';
     else if (key === 'valve') state.studySub = 'valve';
     else if (key === 'passage' || key === 'expr') state.studySub = 'express';
+    else if (key === 'logic') state.studySub = 'logic';
     else if (key === 'news'){ state.tab = 'discover'; state.discoverSub = 'news'; }
     render();
     return;
@@ -1723,7 +1884,6 @@ view.addEventListener('click', async (e) => {
   }
 
   if (act === 'knowToggle'){
-    // 修复：data-q 在卡片上，不在 toggle div 上
     const card = t.closest('.know');
     const q = card ? card.dataset.q : null;
     if (!q) return;
@@ -1743,6 +1903,24 @@ view.addEventListener('click', async (e) => {
     else done.splice(i, 1);
     Store.setKnowDone(done);
     toast(i < 0 ? '已标记掌握' : '已取消');
+    render();
+    return;
+  }
+
+  /* ---------- 逻辑思考 ---------- */
+  if (act === 'thinkToggle'){
+    const card = t.closest('.know');
+    const name = card ? card.dataset.think : null;
+    if (!name) return;
+    state.openThink = state.openThink === name ? null : name;
+    if (state.openThink !== name) state.thinkHint = null;
+    render();
+    return;
+  }
+  if (act === 'thinkHint'){
+    e.stopPropagation();
+    const name = t.dataset.name;
+    state.thinkHint = state.thinkHint === name ? null : name;
     render();
     return;
   }
@@ -1882,35 +2060,22 @@ view.addEventListener('click', async (e) => {
     e.stopPropagation();
     const scheme = t.dataset.scheme;
     const name = t.dataset.name;
-    const cat = t.dataset.cat;
-    const idx = +t.dataset.idx;
-    // 找出该推荐项的 web 兜底链接
-    let webUrl = '';
-    try{
-      const list = SEED.RECOMMEND[cat] || [];
-      const r = list[idx];
-      if (r && r.web) webUrl = r.web(name);
-    }catch(err){}
-    // 复制关键词
-    copyText(name).then(() => toast('关键词已复制：' + name));
-    // 用原生 Intent 打开 App
-    if (hasAndroidBridge() && window.AndroidBridge.openApp){
+    if (!scheme) { toast('这个 App 没有配置'); return; }
+    copyText(name).then(() => toast('关键词已复制，正在打开 App…'));
+    // 用 <a> 标签跳转比 window.location.href 更稳
+    setTimeout(() => {
       try{
-        window.AndroidBridge.openApp(scheme, webUrl);
+        const a = document.createElement('a');
+        a.href = scheme;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => a.remove(), 100);
       }catch(err){
-        console.warn('openApp 失败：', err);
-        if (webUrl) window.location.href = webUrl;
+        console.warn('打开 App 失败：', err);
+        toast('打开失败，关键词已复制，请手动打开 App');
       }
-    } else {
-      // 浏览器环境：直接跳 scheme，1 秒后如果还在页面就打开网页
-      const t0 = Date.now();
-      try { window.location.href = scheme; } catch(err){}
-      setTimeout(() => {
-        if (Date.now() - t0 < 2500 && document.visibilityState === 'visible'){
-          if (webUrl) window.location.href = webUrl;
-        }
-      }, 1200);
-    }
+    }, 150);
     return;
   }
 
@@ -1921,11 +2086,17 @@ view.addEventListener('click', async (e) => {
     const list = SEED.RECOMMEND[cat] || [];
     const r = list[idx];
     if (r && r.web){
-      const url = r.web(r.name);
-      if (hasAndroidBridge() && window.AndroidBridge.openUrl){
-        try{ window.AndroidBridge.openUrl(url); }catch(err){ window.location.href = url; }
-      } else {
-        window.location.href = url;
+      // 用 <a> 标签打开，让 Android 的 shouldOverrideUrlLoading 处理
+      try{
+        const a = document.createElement('a');
+        a.href = r.web(r.name);
+        a.target = '_blank';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => a.remove(), 100);
+      }catch(err){
+        toast('打开失败');
       }
     }
     return;
@@ -1938,6 +2109,7 @@ view.addEventListener('click', async (e) => {
     growth.reflection = refl ? refl.value : '';
     growth.tomorrow = tomorrow ? tomorrow.value : '';
     Store.setGrowth(growth);
+    Store.pushGrowthLog({ date: todayStr(), reflection: growth.reflection, tomorrow: growth.tomorrow, t: Date.now() });
     toast('已保存');
     return;
   }
