@@ -10,7 +10,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;height:100%;}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#e9ebf3;color:var(--ink);display:flex;justify-content:center;min-height:100dvh;overflow:hidden;}
-.phone{position:relative;width:100%;max-width:460px;height:100dvh;background:linear-gradient(180deg,#fbfbfe,#f3f4fa);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 60px rgba(20,20,50,.12);}
+.phone{position:relative;width:100%;max-width:460px;height:100dvh;background:linear-gradient(180deg,#fbfbfe,#f3f4fa);display:flex;flex-direction:column;overflow:hidden;}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;flex-shrink:0;}
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;}
 .brand .dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 0 0 4px rgba(79,70,229,.12);}
@@ -19,7 +19,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .top-icon-btn:active{transform:scale(.94);}
 #view{flex:1;overflow-y:auto;padding:2px 16px 90px;-webkit-overflow-scrolling:touch;}
 #view::-webkit-scrollbar{width:0;}
-.tabbar{flex-shrink:0;display:flex;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,.06);padding:8px 2px calc(8px + env(safe-area-inset-bottom));}
+.tabbar{flex-shrink:0;display:flex;background:rgba(255,255,255,.95);border-top:1px solid rgba(0,0,0,.06);padding:8px 2px calc(8px + env(safe-area-inset-bottom));}
 .tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;border-radius:12px;cursor:pointer;color:#9aa0b0;font-size:9.5px;font-family:inherit;font-weight:600;transition:color .2s;}
 .tab.on{color:var(--brand);}
 .tab-icon{font-size:16px;line-height:1;transition:transform .2s;}
@@ -53,6 +53,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .know-q{font-size:15.5px;font-weight:750;line-height:1.5;letter-spacing:-.25px;}
 .know-a{font-size:13.5px;line-height:1.78;color:#3f4658;margin-top:12px;padding-top:12px;border-top:1px dashed #eceef4;}
 .know-key{margin-top:12px;background:#f8f9fd;border-left:3px solid var(--brand);padding:11px 13px;border-radius:0 10px 10px 0;font-size:12.5px;line-height:1.75;color:#4b5265;}
+.know-body{max-height:0;overflow:hidden;transition:max-height .6s ease;}
+.know.open .know-body{max-height:5000px;}
 .qa-block{margin-top:14px;padding-top:14px;border-top:1px dashed #eceef4;}
 .qa-label{font-size:12px;color:var(--brand);margin-bottom:8px;font-weight:700;}
 .qa-input{width:100%;min-height:60px;border:1px solid #e6e8f0;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:13.5px;line-height:1.65;resize:vertical;color:var(--ink);background:#fafbfe;}
@@ -92,13 +94,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .answer-input:focus{outline:none;border-color:var(--brand);background:#fff;}
 .word-big{font-size:32px;font-weight:850;letter-spacing:-.8px;line-height:1.1;color:#2b3244;}
 .word-ph{font-size:13px;color:var(--sub);margin-top:6px;}
-.news-card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid rgba(16,24,40,.045);box-shadow:0 1px 2px rgba(16,24,40,.04);}
+.news-card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid rgba(16,24,40,.045);}
 .news-tag{display:inline-block;font-size:10.5px;font-weight:750;color:var(--brand);background:#eef0ff;padding:2px 8px;border-radius:5px;margin-bottom:8px;}
 .news-title{font-size:15.5px;font-weight:750;line-height:1.5;margin:0 0 9px;}
 .news-why{margin-top:11px;background:#f8f9fd;border-left:3px solid var(--brand);padding:10px 12px;border-radius:0 10px 10px 0;font-size:12.5px;line-height:1.72;color:#4b5265;}
 .news-think{margin-top:10px;}
 .news-think textarea{width:100%;border:1px dashed #dfe2ee;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;line-height:1.65;resize:vertical;min-height:56px;background:#fff;color:var(--ink);}
-.news-think textarea:focus{outline:none;border-color:var(--brand);border-style:solid;}
 .growth-item{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #f0f1f6;}
 .growth-item:last-child{border:0;}
 .growth-check{width:26px;height:26px;border-radius:9px;border:2px solid #dfe2ee;background:#fff;cursor:pointer;display:grid;place-items:center;font-size:14px;flex-shrink:0;font-family:inherit;padding:0;}
@@ -130,7 +131,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .sheet-sec h4::before{content:'';width:3px;height:13px;border-radius:2px;background:linear-gradient(90deg,var(--brand),var(--brand2));}
 .sheet-sec ul,.sheet-sec ol{margin:0;padding-left:20px;}
 .sheet-sec li{font-size:13.5px;line-height:1.85;color:#3f4658;}
-.toast{position:absolute;left:50%;bottom:150px;transform:translate(-50%,10px);background:rgba(17,24,39,.92);color:#fff;font-size:13.5px;font-weight:600;padding:11px 20px;border-radius:14px;opacity:0;transition:.25s;z-index:99;pointer-events:none;backdrop-filter:blur(8px);max-width:90%;text-align:center;}
+.toast{position:absolute;left:50%;bottom:150px;transform:translate(-50%,10px);background:rgba(17,24,39,.92);color:#fff;font-size:13.5px;font-weight:600;padding:11px 20px;border-radius:14px;opacity:0;transition:.25s;z-index:99;pointer-events:none;max-width:90%;text-align:center;}
 .toast.show{opacity:1;transform:translate(-50%,0);}
 .fade-in{animation:fi .35s ease;}
 @keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
@@ -138,8 +139,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .task-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
 .task-title{font-size:14px;font-weight:750;}
 .task-progress{font-size:12px;color:var(--sub);font-weight:600;}
-.task-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #eceef4;}
+.task-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #eceef4;cursor:pointer;}
 .task-row:last-child{border:0;padding-bottom:0;}
+.task-row:active{background:#f8f9fd;}
 .task-check{width:22px;height:22px;border-radius:8px;border:2px solid #dfe2ee;background:#fff;display:grid;place-items:center;font-size:12px;flex-shrink:0;color:#fff;font-weight:700;}
 .task-check.on{background:var(--brand);border-color:var(--brand);}
 .task-label{flex:1;font-size:13px;font-weight:600;color:#3f4658;}
@@ -147,7 +149,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .task-count{font-size:11.5px;color:var(--sub);font-weight:600;}
 .weekly-card{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:18px;padding:18px;margin-bottom:14px;}
 .weekly-card .tag{font-size:11px;font-weight:750;letter-spacing:1.5px;opacity:.75;margin-bottom:8px;}
-.weekly-card h3{font-size:17px;margin:0 0 8px;letter-spacing:-.3px;}
+.weekly-card h3{font-size:17px;margin:0 0 8px;}
 .weekly-card p{font-size:13px;line-height:1.7;opacity:.92;margin:0 0 14px;}
 .weekly-score{font-size:36px;font-weight:850;letter-spacing:-1.5px;line-height:1;}
 .weekly-score small{font-size:14px;opacity:.55;font-weight:600;margin-left:3px;}
@@ -171,12 +173,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .ai-role-btn{border:1px solid #e6e8f0;background:#fff;border-radius:99px;padding:5px 11px;font-family:inherit;font-size:11.5px;font-weight:650;cursor:pointer;color:#5b6276;}
 .ai-role-btn.on{background:var(--brand);color:#fff;border-color:var(--brand);}
 .hobby-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
-.hobby-card{background:#fff;border:1px solid rgba(16,24,40,.05);border-radius:18px;padding:16px 14px;text-align:left;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:7px;box-shadow:0 1px 2px rgba(16,24,40,.04);}
+.hobby-card{background:#fff;border:1px solid rgba(16,24,40,.05);border-radius:18px;padding:16px 14px;text-align:left;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:7px;}
 .hobby-card:active{transform:scale(.97);}
 .hobby-card .emoji{font-size:26px;line-height:1;}
 .hobby-card .h-name{font-size:14.5px;font-weight:700;color:var(--ink);}
 .hobby-card .h-cost{font-size:11.5px;color:var(--sub);}
 .loading-text{text-align:center;font-size:13px;color:var(--sub);padding:30px 0;}
+.status-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.status-badge.ok{background:#ecfdf5;color:#047857;}
+.status-badge.warn{background:#fef3c7;color:#b45309;}
 </style>
 </head>
 <body>
@@ -217,9 +222,7 @@ function dailyPick(arr,n,salt=0){
   return idx.slice(0,n).map(i=>arr[i]);
 }
 
-/* ============================================================
-   内置种子数据（外部 JSON 加载失败时使用）
-   ============================================================ */
+/* 内置种子 */
 const SEED = {
   WORDS: [
     {w:'maintain',ph:'/meɪnˈteɪn/',pos:'v.',cn:'维持；保养',scene:'The valve must be maintained regularly.',sceneCn:'阀门需要定期保养。'},
@@ -230,13 +233,8 @@ const SEED = {
     {w:'seal',ph:'/siːl/',pos:'n./v.',cn:'密封',scene:'The seal was replaced during maintenance.',sceneCn:'维护时更换了密封件。'},
     {w:'corrosion',ph:'/kəˈrəʊʒn/',pos:'n.',cn:'腐蚀',scene:'Chloride ions cause stress corrosion cracking.',sceneCn:'氯离子会导致应力腐蚀开裂。'},
     {w:'inspect',ph:'/ɪnˈspekt/',pos:'v.',cn:'检查；检验',scene:'Inspect the valve before installation.',sceneCn:'安装前检查阀门。'},
-    {w:'tolerance',ph:'/ˈtɒlərəns/',pos:'n.',cn:'公差；容差',scene:'The machining tolerance must be within 0.05 mm.',sceneCn:'加工公差必须在 0.05 毫米以内。'},
-    {w:'specification',ph:'/ˌspesɪfɪˈkeɪʃn/',pos:'n.',cn:'规格；规范',scene:'Check the specification before ordering.',sceneCn:'订货前核对规格。'},
     {w:'temperature',ph:'/ˈtemprətʃə(r)/',pos:'n.',cn:'温度',scene:'The operating temperature exceeds the limit.',sceneCn:'工作温度超过了限制。'},
-    {w:'reliable',ph:'/rɪˈlaɪəbl/',pos:'adj.',cn:'可靠的',scene:'We need a reliable supplier for this project.',sceneCn:'这个项目需要可靠的供应商。'},
-    {w:'efficient',ph:'/ɪˈfɪʃnt/',pos:'adj.',cn:'高效的',scene:'This design is more efficient in flow control.',sceneCn:'这个设计在流量控制上更高效。'},
-    {w:'schedule',ph:'/ˈʃedjuːl/',pos:'n./v.',cn:'计划；进度',scene:'The delivery schedule has been delayed.',sceneCn:'交货计划被推迟了。'},
-    {w:'negotiate',ph:'/nɪˈɡəʊʃieɪt/',pos:'v.',cn:'谈判；协商',scene:'We need to negotiate the price with the supplier.',sceneCn:'我们需要和供应商协商价格。'}
+    {w:'reliable',ph:'/rɪˈlaɪəbl/',pos:'adj.',cn:'可靠的',scene:'We need a reliable supplier for this project.',sceneCn:'这个项目需要可靠的供应商。'}
   ],
   VALVE: {
     '基础知识': [
@@ -249,43 +247,22 @@ const SEED = {
     '标准规范': [
       {q:'API 600 是什么？',a:'钢制闸阀标准（Class 150~2500）。',key:'对应国标 GB/T 12234。'},
       {q:'API 6D 是什么？',a:'管线阀门标准。',key:'要求全通径、可清管、防火、防静电、逸散性。'},
-      {q:'API 607 是什么？',a:'软密封阀门的防火试验标准。',key:'火烧后要求外部无泄漏。'},
-      {q:'ASME B16.34 是什么？',a:'美标阀门基础标准。',key:'规定压力-温度额定值、阀体壁厚、材料要求。'},
-      {q:'GB/T 13927 是什么？',a:'工业阀门压力试验标准。',key:'等同采用 ISO 5208。'}
+      {q:'API 607 是什么？',a:'软密封阀门的防火试验标准。',key:'火烧后要求外部无泄漏。'}
     ],
     '材质选型': [
-      {q:'WCB 适用什么工况？',a:'碳钢铸件，适用水、油、气、蒸汽。',key:'-29℃~425℃。酸性或含硫介质必须换不锈钢。'},
-      {q:'CF8 和 CF8M 有什么区别？',a:'CF8 对应 304，CF8M 对应 316。',key:'CF8M 含钼，耐氯离子点蚀。'},
-      {q:'WC6 和 WC9 用在什么场合？',a:'WC6 是 1.25Cr-0.5Mo，WC9 是 2.25Cr-1Mo。',key:'WC6：-29~595℃。WC9：-29~650℃。'},
-      {q:'低温材质怎么选？',a:'-46℃ 用 LCB，-101℃ 用 LC3，-196℃ 用 CF8M。',key:'选型看最低使用温度。'},
-      {q:'含氯离子介质怎么选？',a:'316（含钼）或双相钢 2205。',key:'304 在 60℃ 以上就有应力腐蚀风险。'}
-    ],
-    '故障案例': [
-      {q:'闸阀关闭困难，扭矩增加。原因？',a:'填料过紧、阀杆锈蚀、异物夹入。',key:'先松填料压盖，再检查阀杆直线度，最后解体检查。'},
-      {q:'球阀中腔压力异常升高。原因？',a:'中腔异常升压。',key:'球阀阀座应设置自动泄压结构。'},
-      {q:'填料处持续外漏。怎么办？',a:'填料老化或压盖松动。',key:'先均匀压紧压盖。无效则更换填料，接口错开 120°。'},
-      {q:'阀杆断裂。原因？',a:'力矩过大、材质缺陷、疲劳。',key:'执行器力矩匹配，阀杆材质符合工况。'},
-      {q:'密封面冲蚀沟槽。原因？',a:'介质含颗粒、流速过高、长期半开。',key:'选硬密封、耐磨材质。避免半开。上游加过滤器。'}
-    ],
-    '安装维护': [
-      {q:'阀门安装前要检查什么？',a:'核对型号、检查灵活性、清除杂物。',key:'焊接阀门关闭状态下焊接会导致密封面变形。'},
-      {q:'强度试验和密封试验有什么区别？',a:'强度试验 1.5 倍，检验阀体。密封试验 1.1 倍，检验密封。',key:'不锈钢阀门用去离子水。'},
-      {q:'填料怎么更换？',a:'先关阀、泄压、拆压盖、取旧填料、装新填料。',key:'填料接口错开 120°。'},
-      {q:'冬季阀门防冻怎么做？',a:'排空积水、保温伴热、定期活动阀门。',key:'蒸汽阀门加疏水阀。'},
-      {q:'阀门什么情况下需要报废？',a:'阀体裂纹、壁厚严重减薄、密封面无法修复。',key:'修复成本超过新阀 50% 时建议更换。'}
+      {q:'WCB 适用什么工况？',a:'碳钢铸件，适用水、油、气、蒸汽。',key:'-29℃~425℃。'},
+      {q:'CF8 和 CF8M 有什么区别？',a:'CF8 对应 304，CF8M 对应 316。',key:'CF8M 含钼，耐氯离子点蚀。'}
     ]
   },
   GENERAL: [
     {q:'为什么飞机能飞起来？',a:'机翼上下压力差产生升力。',key:'伯努利原理 + 牛顿第三定律。'},
     {q:'为什么通货膨胀影响生活？',a:'货币购买力下降。',key:'温和通胀（2% 左右）有利于经济。'},
-    {q:'为什么天空是蓝色的？',a:'蓝光被空气分子散射得更多。',key:'傍晚剩下红光——这就是晚霞。'},
-    {q:'为什么咖啡能提神？',a:'咖啡因占据大脑的腺苷受体。',key:'咖啡因不提供能量，只是暂时屏蔽疲劳信号。'},
-    {q:'为什么会有时差？',a:'地球自转导致不同经度看到太阳的时间不同。',key:'全球划为 24 个时区。'}
+    {q:'为什么天空是蓝色的？',a:'蓝光被空气分子散射得更多。',key:'傍晚剩下红光——这就是晚霞。'}
   ],
   THINKING: [
-    {name:'演绎推理',emoji:'🔽',core:'从一般到个别：大前提 + 小前提 → 必然结论。',how:['确认大前提','确认小前提','推导结论'],exercise:'含硫工况碳钢螺栓硬度 ≤22HRC。这批螺栓 B7（35HRC）。结论？',hint:'结论：这批螺栓不能用在含硫天然气项目上。'},
+    {name:'演绎推理',emoji:'🔽',core:'从一般到个别：大前提 + 小前提 → 必然结论。',how:['确认大前提','确认小前提','推导结论'],exercise:'含硫工况碳钢螺栓硬度 ≤22HRC。这批螺栓 B7（35HRC）。结论？',hint:'结论：不能用在含硫天然气项目上。'},
     {name:'归纳推理',emoji:'🔼',core:'从个别到一般。',how:['收集案例','找共同点','提结论'],exercise:'过去 3 年 8 次阀门内漏，6 次同一家供应商。结论？',hint:'归纳推理的结论是"可能"而不是"必然"。'},
-    {name:'第一性原理',emoji:'🔬',core:'拆到基本事实，再往上重建。',how:['问底层事实','剔除假设','重新推导'],exercise:'把你工作里最头疼的问题拆到最基本事实。',hint:'真正的问题可能是介质里有颗粒，而不是阀门品牌。'},
+    {name:'第一性原理',emoji:'🔬',core:'拆到基本事实，再往上重建。',how:['问底层事实','剔除假设','重新推导'],exercise:'把你工作里最头疼的问题拆到最基本事实。',hint:'真正的问题可能是介质里有颗粒。'},
     {name:'5 Why 追问',emoji:'❓',core:'连续问 5 次为什么，找到根因。',how:['从问题开始','问为什么','重复 5 次'],exercise:'某批阀门试压不合格率高。连续问 5 个为什么。',hint:'根因可能是"没有工序卡控"。'},
     {name:'MECE',emoji:'📐',core:'相互独立、完全穷尽。',how:['拆成互不重叠类别','覆盖所有可能','每类再拆解'],exercise:'"阀门故障"怎么用 MECE 拆开？',hint:'① 内漏；② 外漏；③ 操作异常；④ 结构失效；⑤ 附件故障。'}
   ],
@@ -299,11 +276,6 @@ const SEED = {
       {q:'刚认识一个人，想开启话题。',guide:'不要问"你是做什么的"。问"你最近在忙什么"。'},
       {q:'朋友很难过，你不知道怎么安慰。',guide:'先不说"别难过"。说"我在，你说，我听着"。'},
       {q:'你不同意别人的观点。',guide:'先承接，再补充，不否定对方整个人。'}
-    ],
-    '英语表达': [
-      {q:'How was your weekend?',guide:'用 3-5 句话回答。包含：做了什么、感受如何、一个具体细节。'},
-      {q:'Could you tell me about your job?',guide:'用 3-5 句话介绍你的工作。'},
-      {q:'I need to reschedule our meeting.',guide:'用 2-3 句话说明原因、建议改期、表示歉意。'}
     ]
   },
   EXPRESS_PASSAGES: [
@@ -311,10 +283,10 @@ const SEED = {
     {title:'谈读书',text:'读书足以怡情，足以傅彩，足以长才。其怡情也，最见于独处幽居之时；其傅彩也，最见于高谈阔论之中；其长才也，最见于处世判事之际。',tips:'三个短句要连贯，语速稍快。'},
     {title:'相信未来',text:'当蜘蛛网无情地查封了我的炉台，当灰烬的余烟叹息着贫困的悲哀，我依然固执地铺平失望的灰烬，用美丽的雪花写下：相信未来。',tips:'力量在"依然固执"四个字。'},
     {title:'我与地坛',text:'它等待我出生，然后又等待我活到最狂妄的年龄上忽地残废了双腿。十五年前的一个下午，我摇着轮椅进入园中，它为一个失魂落魄的人把一切都准备好了。',tips:'史铁生的文字很平静，但底下有很深的情绪。'},
-    {title:'活着的意义',text:'人是为活着本身而活着，而不是为了活着之外的任何事物而活着。作为一个词语，"活着"充满了力量。',tips:'余华的句子不长，但每句都很重。'}
+    {title:'活着的意义',text:'人是为活着本身而活着，而不是为了活着之外的任何事物而活着。',tips:'余华的句子不长，但每句都很重。'}
   ],
   NEWS: [
-    {cat:'AI 行业',t:'某头部公司发布新一代办公 AI 模型',why:'办公场景的 AI 能力直接影响到日常文档、会议纪要、邮件处理的效率。',d:'新模型在长文本理解和多语言翻译上有明显提升。'},
+    {cat:'AI 行业',t:'某头部公司发布新一代办公 AI 模型',why:'办公场景的 AI 能力直接影响日常文档、会议纪要、邮件处理的效率。',d:'新模型在长文本理解和多语言翻译上有明显提升。'},
     {cat:'阀门行业',t:'工业阀门国产替代加速，高端球阀订单饱满',why:'石化、LNG 项目集中交付，国产化率提升直接影响采购成本和交期。',d:'多家阀门企业排产已至下季度。'},
     {cat:'石油化工',t:'炼化一体化项目集中开工，带动高温高压阀门需求',why:'高温高压阀门的技术门槛高，是行业利润最集中的细分市场之一。',d:'项目对闸阀、截止阀、调节阀的需求同步上升。'},
     {cat:'标准更新',t:'新版阀门密封性能测试标准进入征求意见阶段',why:'标准变化会直接影响产品设计、试验方法和出口合规。',d:'新标准细化了低温、高压工况下的泄漏等级判定方法。'},
@@ -323,8 +295,7 @@ const SEED = {
   RECOMMEND: {
     '书': [
       {name:'人类简史',author:'尤瓦尔·赫拉利',emoji:'📖',why:'从认知革命到人工智能，用 500 页讲完人类 7 万年的故事。',scene:'想读点宏大的东西',scheme:'weread://',web:(q)=>`https://weread.qq.com/web/search/books?keyword=${encodeURIComponent(q)}`},
-      {name:'被讨厌的勇气',author:'岸见一郎',emoji:'📖',why:'阿德勒心理学的入门书。',scene:'对人际关系感到累时',scheme:'weread://',web:(q)=>`https://weread.qq.com/web/search/books?keyword=${encodeURIComponent(q)}`},
-      {name:'原子习惯',author:'詹姆斯·克利尔',emoji:'📖',why:'讲习惯最好的一本书。',scene:'想培养一个新习惯时',scheme:'weread://',web:(q)=>`https://weread.qq.com/web/search/books?keyword=${encodeURIComponent(q)}`}
+      {name:'被讨厌的勇气',author:'岸见一郎',emoji:'📖',why:'阿德勒心理学的入门书。',scene:'对人际关系感到累时',scheme:'weread://',web:(q)=>`https://weread.qq.com/web/search/books?keyword=${encodeURIComponent(q)}`}
     ],
     '电影': [
       {name:'肖申克的救赎',author:'1994',emoji:'🎬',why:'关于希望的电影。',scene:'周末一个安静的下午',scheme:'douban://',web:(q)=>`https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(q)}`},
@@ -336,33 +307,58 @@ const SEED = {
     ],
     '工具': [
       {name:'Obsidian',author:'笔记工具',emoji:'📝',why:'把笔记存成 Markdown 文件。',scene:'想认真建个人知识库',scheme:null,web:()=>`https://obsidian.md/`},
-      {name:'Anki',author:'记忆工具',emoji:'🧠',why:'间隔重复记忆神器。',scene:'准备考证',scheme:'anki://',web:()=>`https://apps.ankiweb.net/`}
+      {name:'Anki',author:'记忆工具',emoji:'🧠',why:'间隔重复记忆神器。',scene:'准备考证',scheme:null,web:()=>`https://apps.ankiweb.net/`}
     ]
   }
 };
 SEED.VALVE_ALL = [];
 
 /* ============================================================
-   外部数据加载（Android assets）
+   外部数据加载 — 分开加载，明确错误
    ============================================================ */
+window.__dataStatus = { valve: 0, words: 0, valveOk: false, wordsOk: false };
+
 async function loadExternalData(){
+  // 加载 valve.json
   try{
-    const [wRes, vRes] = await Promise.all([
-      fetch('./data/words.json'),
-      fetch('./data/valve.json')
-    ]);
-    if (wRes.ok && vRes.ok){
-      SEED.WORDS = await wRes.json();
-      SEED.VALVE = await vRes.json();
-      SEED.VALVE_ALL = Object.keys(SEED.VALVE).flatMap(cat => SEED.VALVE[cat].map(v => ({ ...v, cat })));
-      console.log('数据加载成功：' + SEED.WORDS.length + ' 单词，' + SEED.VALVE_ALL.length + ' 知识');
-      return;
+    const vRes = await fetch('./data/valve.json');
+    if (vRes.ok){
+      const txt = await vRes.text();
+      const data = JSON.parse(txt);
+      SEED.VALVE = data;
+      SEED.VALVE_ALL = Object.keys(data).flatMap(cat => (data[cat]||[]).map(v => ({ ...v, cat })));
+      window.__dataStatus.valve = SEED.VALVE_ALL.length;
+      window.__dataStatus.valveOk = true;
+      console.log('✓ valve.json 加载成功：' + SEED.VALVE_ALL.length + ' 条');
+    } else {
+      console.warn('valve.json HTTP ' + vRes.status);
     }
-    throw new Error('HTTP ' + wRes.status + '/' + vRes.status);
   }catch(e){
-    console.warn('外部数据加载失败：', e);
+    console.error('✗ valve.json 加载失败：', e.message);
+  }
+
+  // 加载 words.json
+  try{
+    const wRes = await fetch('./data/words.json');
+    if (wRes.ok){
+      const txt = await wRes.text();
+      const data = JSON.parse(txt);
+      if (Array.isArray(data) && data.length > 0){
+        SEED.WORDS = data;
+        window.__dataStatus.words = data.length;
+        window.__dataStatus.wordsOk = true;
+        console.log('✓ words.json 加载成功：' + data.length + ' 条');
+      }
+    }
+  }catch(e){
+    console.error('✗ words.json 加载失败：', e.message);
+  }
+
+  // 回退
+  if (!SEED.VALVE_ALL.length){
     SEED.VALVE_ALL = Object.keys(SEED.VALVE).flatMap(cat => SEED.VALVE[cat].map(v => ({ ...v, cat })));
-    console.log('使用内置数据：' + SEED.VALVE_ALL.length + ' 条');
+    window.__dataStatus.valve = SEED.VALVE_ALL.length;
+    console.warn('! 使用内置阀知识：' + SEED.VALVE_ALL.length + ' 条');
   }
 }
 
@@ -502,52 +498,36 @@ const Store = {
     plan.splice(idx, 1);
     LS.set('study-plan', plan);
   },
-  getGrowth(){ return LS.get('growth', {}); },
-  setGrowth(d){ LS.set('growth', d); },
-  exportAll(){
+  buildExportData(){
     const thinkAnswers = {};
     SEED.THINKING.forEach(m => { const a = LS.get('think-ans:' + m.name, ''); if (a) thinkAnswers[m.name] = a; });
     const notes = {};
     SEED.VALVE_ALL.forEach(v => { const n = LS.get('note:' + v.q, ''); if (n) notes[v.q] = n; });
     const data = {
-      app:'daily', version:15, exportedAt:new Date().toISOString(),
+      app:'daily', version:16, exportedAt:new Date().toISOString(),
       learned:this.getLearned(), thinkAnswers, notes,
       schedule:{ english:this.getSchedule('english'), work:this.getSchedule('work') },
-      wrongBook:this.getWrongBook(), growth:this.getGrowth(), streak:this.getStreak(),
+      wrongBook:this.getWrongBook(), growth:LS.get('growth', {}), streak:this.getStreak(),
       aiHistory: this.getAIHistory(), studyPlan: this.getStudyPlan()
     };
     try { Object.keys(localStorage).forEach(k => { if (k.startsWith('expr-ans:')) data[k]=LS.get(k,''); if (k.startsWith('expr-grade:')) data[k]=LS.get(k,null); }); } catch(e){}
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `daily-backup-${todayStr()}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    toast('已导出备份');
+    return data;
   },
-  importFile(file){
-    const reader = new FileReader();
-    reader.onload = e => {
-      try{
-        const d = JSON.parse(e.target.result);
-        if (d.learned) LS.set('learned:' + DAY, d.learned);
-        if (d.thinkAnswers) Object.keys(d.thinkAnswers).forEach(k => LS.set('think-ans:' + k, d.thinkAnswers[k]));
-        if (d.notes) Object.keys(d.notes).forEach(k => LS.set('note:' + k, d.notes[k]));
-        if (d.schedule){
-          if (d.schedule.english) this.setSchedule('english', d.schedule.english);
-          if (d.schedule.work) this.setSchedule('work', d.schedule.work);
-        }
-        if (d.wrongBook) LS.set('wrong-book', d.wrongBook);
-        if (d.growth) LS.set('growth', d.growth);
-        if (d.streak) LS.set('streak', d.streak);
-        if (d.aiHistory) LS.set('ai-history', d.aiHistory);
-        if (d.studyPlan) LS.set('study-plan', d.studyPlan);
-        Object.keys(d).forEach(k => { if (k.startsWith('expr-')) LS.set(k, d[k]); });
-        toast('导入成功，正在刷新…');
-        setTimeout(() => location.reload(), 700);
-      }catch(err){ toast('文件格式不对：' + err.message); }
-    };
-    reader.readAsText(file);
+  importDataFromText(text){
+    const d = JSON.parse(text);
+    if (d.learned) LS.set('learned:' + DAY, d.learned);
+    if (d.thinkAnswers) Object.keys(d.thinkAnswers).forEach(k => LS.set('think-ans:' + k, d.thinkAnswers[k]));
+    if (d.notes) Object.keys(d.notes).forEach(k => LS.set('note:' + k, d.notes[k]));
+    if (d.schedule){
+      if (d.schedule.english) this.setSchedule('english', d.schedule.english);
+      if (d.schedule.work) this.setSchedule('work', d.schedule.work);
+    }
+    if (d.wrongBook) LS.set('wrong-book', d.wrongBook);
+    if (d.growth) LS.set('growth', d.growth);
+    if (d.streak) LS.set('streak', d.streak);
+    if (d.aiHistory) LS.set('ai-history', d.aiHistory);
+    if (d.studyPlan) LS.set('study-plan', d.studyPlan);
+    Object.keys(d).forEach(k => { if (k.startsWith('expr-')) LS.set(k, d[k]); });
   },
   clearAll(){
     try{
@@ -719,18 +699,39 @@ const AI = {
 };
 
 /* ============================================================
-   语音
+   语音 — 优先用 Android 原生 TTS
    ============================================================ */
 function stopSpeak(){
-  if (!('speechSynthesis' in window)) return;
-  speechSynthesis.cancel();
+  // 停 Android TTS
+  try{ if (window.AndroidBridge && window.AndroidBridge.stopSpeak) window.AndroidBridge.stopSpeak(); }catch(e){}
+  // 停浏览器 TTS
+  if ('speechSynthesis' in window){
+    try{ speechSynthesis.cancel(); }catch(e){}
+  }
   document.querySelectorAll('.playing').forEach(b => b.classList.remove('playing'));
 }
 function toggleSpeak(text, lang, btn){
-  if (!text || !('speechSynthesis' in window)) { toast('当前浏览器不支持语音朗读'); return; }
+  if (!text) return;
   const wasPlaying = btn && btn.classList.contains('playing');
   stopSpeak();
   if (wasPlaying) return;
+
+  // 优先：Android 原生 TTS
+  if (window.AndroidBridge && window.AndroidBridge.speak){
+    try{
+      const ok = window.AndroidBridge.speak(text, lang || 'en-US');
+      if (ok){
+        if (btn) btn.classList.add('playing');
+        // 估算朗读时长，自动移除高亮
+        const dur = Math.max(1500, text.length * (lang && lang.startsWith('zh') ? 220 : 320));
+        setTimeout(() => { if (btn) btn.classList.remove('playing'); }, dur);
+        return;
+      }
+    }catch(e){ console.warn('Android TTS 失败：', e); }
+  }
+
+  // 回退：浏览器 TTS
+  if (!('speechSynthesis' in window)){ toast('当前环境不支持语音朗读'); return; }
   const u = new SpeechSynthesisUtterance(text);
   const accent = LS.get('voice-accent', 'en-US');
   const speed = LS.get('voice-speed', 0.85);
@@ -777,7 +778,8 @@ const state = {
   passageHidden:false,
   currentWords:[],
   aiRole: LS.get('ai-role', 'engineer'),
-  currentSearch: []
+  currentSearch: [],
+  exprCat:'工作沟通'
 };
 
 const view = document.getElementById('view');
@@ -832,10 +834,10 @@ function todaySection(){
       <div class="task-progress">${done}/${tasks.length} 完成${streak.count > 0 ? ' · 🔥' + streak.count + '天' : ''}</div>
     </div>
     ${tasks.map(t => `
-      <div class="task-row">
+      <div class="task-row" data-act="taskJump" data-key="${t.key}">
         <div class="task-check ${t.done ? 'on' : ''}">${t.done ? '✓' : ''}</div>
         <div class="task-label ${t.done ? 'on' : ''}">${t.label}</div>
-        <div class="task-count">${t.current}/${t.total}</div>
+        <div class="task-count">${t.current}/${t.total} →</div>
       </div>
     `).join('')}
     ${done === tasks.length ? `<div style="margin-top:12px;padding:10px 12px;background:#ecfdf5;border-radius:10px;font-size:12.5px;color:#047857;font-weight:650;text-align:center;">🎉 今日任务全部完成，给自己点个赞</div>` : ''}
@@ -873,7 +875,7 @@ function weeklyTestSection(){
       <p>本周测试已完成于 ${new Date(t.takenAt).toLocaleDateString()}。</p>
       <button class="btn" style="background:rgba(255,255,255,.9);color:var(--brand);" data-act="startWeekly">重新测试</button>
     </div>
-    <div class="tip-card">周测是自我检验，成绩不记录到任何地方。重点是找到自己真正掌握了什么。</div>`;
+    <div class="tip-card">周测是自我检验，成绩不记录到任何地方。</div>`;
   }
   return `
   <div class="weekly-card">
@@ -956,12 +958,14 @@ function valveSection(){
   const dueItems = due.map(k => SEED.VALVE_ALL.find(v => v.q === k)).filter(Boolean);
   const wrongBook = Store.getWrongBook().filter(x => x.type === 'work');
   const cats = ['全部', ...Object.keys(SEED.VALVE)];
+  const loaded = window.__dataStatus.valveOk;
   return `
   <div class="card" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:0;">
     <div style="font-size:11px;letter-spacing:1.5px;font-weight:750;opacity:.75;margin-bottom:8px;">VALVE KNOWLEDGE</div>
     <div style="font-size:19px;font-weight:750;margin-bottom:10px;">${SEED.VALVE_ALL.length} 条专业知识</div>
-    <div style="font-size:13.5px;opacity:.92;line-height:1.7;">${cats.length - 1} 大类，覆盖选型 / 标准 / 材质 / 故障</div>
+    <div style="font-size:13.5px;opacity:.92;line-height:1.7;">${cats.length - 1} 大类 ${loaded ? '· 数据已加载' : '· 使用内置数据'}</div>
   </div>
+  ${!loaded ? `<div class="tip-card" style="background:#fef3c7;border-color:#fde68a;color:#92400e;">⚠️ valve.json 未加载成功，当前使用内置的 ${SEED.VALVE_ALL.length} 条数据。请检查 assets/data/valve.json 是否是合法 JSON。</div>` : ''}
   ${dueItems.length ? `
   <div class="card" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fbbf24;">
     <div style="font-size:13px;font-weight:750;color:#92400e;margin-bottom:8px;">🔁 巩固旧知识（${dueItems.length} 条待复习）</div>
@@ -991,7 +995,7 @@ function knowCard(v, i){
   const askText = LS.get('ask-text:' + v.q, '');
   const isLoading = state.aiLoading && state.aiAnsweringFor === v.q;
   const hasAsk = askCache && askCache.answer;
-  return `<div class="card ${open?'open':''}" data-q="${esc(v.q)}">
+  return `<div class="card know ${open?'open':''}" data-q="${esc(v.q)}">
     <div style="cursor:pointer" data-act="knowToggle">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
         <div style="flex:1;min-width:0;">
@@ -1001,7 +1005,7 @@ function knowCard(v, i){
         <span style="font-size:12px;color:var(--sub);flex-shrink:0;">${open?'▴':'▾'}</span>
       </div>
     </div>
-    ${open ? `<div class="fade-in">
+    <div class="know-body">
       <div class="know-a">${esc(v.a)}</div>
       <div class="know-key">${esc(v.key)}</div>
       <div class="qa-block">
@@ -1011,7 +1015,7 @@ function knowCard(v, i){
           <button class="qa-btn" data-act="askAbout" data-q="${esc(v.q)}" ${isLoading?'disabled':''}>${isLoading?'⏳ 思考中…':'问 AI'}</button>
           ${hasAsk?`<button class="qa-btn ghost" data-act="saveAskToNote" data-q="${esc(v.q)}">📝 记入笔记</button><button class="qa-btn ghost" data-act="clearAsk" data-q="${esc(v.q)}">清除</button>`:''}
         </div>
-        ${hasAsk ? `<div class="qa-answer fade-in"><div class="qa-answer-head">🤖 AI 解答</div><div class="qa-answer-body">${esc(askCache.answer)}</div></div>` : ''}
+        ${hasAsk ? `<div class="qa-answer"><div class="qa-answer-head">🤖 AI 解答</div><div class="qa-answer-body">${esc(askCache.answer)}</div></div>` : ''}
         ${!AI.enabled() && !hasAsk ? `<div style="font-size:11.5px;color:var(--sub);margin-top:8px;line-height:1.6;">⚠️ 未配置 AI。去「我的」页填入 API Key 后即可提问。</div>` : ''}
       </div>
       <div class="note-block">
@@ -1019,7 +1023,7 @@ function knowCard(v, i){
         <textarea class="note-input" data-note-q="${esc(v.q)}" placeholder="记录你的理解、经验、疑问…">${esc(note)}</textarea>
       </div>
       <button class="btn ghost wide" style="margin-top:14px;" data-act="knowDone" data-q="${esc(v.q)}">标记为已掌握</button>
-    </div>` : ''}
+    </div>
   </div>`;
 }
 
@@ -1042,7 +1046,8 @@ function generalSection(){
 
 function expressSection(){
   const passage = dailyPick(SEED.EXPRESS_PASSAGES, 1, 41)[0];
-  const sceneCats = Object.keys(SEED.SCENES);
+  // 排除英语表达类别（用户反馈说还没学到）
+  const sceneCats = Object.keys(SEED.SCENES).filter(c => c !== '英语表达');
   const allScenes = sceneCats.flatMap(c => SEED.SCENES[c].map(s => ({ ...s, cat:c })));
   const todayScene = dailyPick(allScenes, 1, 47)[0];
   const key = 'expr-' + todayScene.cat + '-' + todayScene.q;
@@ -1239,46 +1244,36 @@ function recommendSection(){
 }
 
 /* ============================================================
-   我的视图
+   我的视图（去掉今日打卡）
    ============================================================ */
 async function meView(){
   const stats = Store.stats();
   const streak = Store.getStreak();
   const notes = Store.getAllNotes();
   const growth = Store.getGrowth() || {};
-  const today = todayStr();
-  const items = [
-    { key:'english', label:'学英语' },
-    { key:'valve', label:'学阀门知识' },
-    { key:'think', label:'逻辑练习' },
-    { key:'exercise', label:'运动' },
-    { key:'read', label:'阅读' }
-  ];
-  const checks = growth.checks || {};
-  const todayChecks = checks[today] || {};
-  const todayDone = items.filter(i => todayChecks[i.key]).length;
+  const dataStatus = window.__dataStatus || { valve: 0, words: 0, valveOk: false, wordsOk: false };
   return `
   <div class="hero">
     <div class="hero-k">我的</div>
-    <h1>成长记录</h1>
+    <h1>数据管理</h1>
     ${streak.count > 0 ? `<div style="margin-top:12px"><span class="streak-badge" style="font-size:13px;padding:5px 12px;">🔥 已连续学习 ${streak.count} 天 · 最长 ${streak.best} 天</span></div>` : ''}
   </div>
+
   <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:12px;">☑️ 今日打卡 <span style="font-size:12px;color:var(--sub);font-weight:500;margin-left:6px;">${todayDone}/${items.length}</span></div>
-    ${items.map(it => `
-      <div class="growth-item">
-        <button class="growth-check ${todayChecks[it.key]?'on':''}" data-act="toggleCheck" data-key="${it.key}">${todayChecks[it.key]?'✓':''}</button>
-        <span class="growth-label ${todayChecks[it.key]?'on':''}">${it.label}</span>
-      </div>
-    `).join('')}
+    <div style="font-size:14px;font-weight:750;margin-bottom:12px;">📊 数据加载状态</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;">
+      <span class="status-badge ${dataStatus.valveOk?'ok':'warn'}">${dataStatus.valveOk?'✓':'⚠'}</span>
+      <span style="flex:1;color:#4b5265;">阀门知识库</span>
+      <span style="font-weight:700;color:${dataStatus.valveOk?'#047857':'#b45309'};">${dataStatus.valve} 条</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;">
+      <span class="status-badge ${dataStatus.wordsOk?'ok':'warn'}">${dataStatus.wordsOk?'✓':'⚠'}</span>
+      <span style="flex:1;color:#4b5265;">英语单词库</span>
+      <span style="font-weight:700;color:${dataStatus.wordsOk?'#047857':'#b45309'};">${dataStatus.words} 条</span>
+    </div>
+    ${!dataStatus.valveOk ? `<div style="font-size:12px;color:#b45309;line-height:1.7;margin-top:8px;padding:10px 12px;background:#fef3c7;border-radius:10px;">⚠️ valve.json 未加载成功。请确认 <code>assets/data/valve.json</code> 是合法 JSON。</div>` : ''}
   </div>
-  <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:8px;">💭 今日感悟</div>
-    <textarea class="answer-input" id="growthReflection" style="min-height:80px" placeholder="今天有什么感受、发现、想法…">${esc(growth.reflection || '')}</textarea>
-    <div style="font-size:14px;font-weight:750;margin:16px 0 8px;">🎯 明天调整</div>
-    <textarea class="answer-input" id="growthTomorrow" style="min-height:70px" placeholder="明天想改什么、做什么…">${esc(growth.tomorrow || '')}</textarea>
-    <button class="btn primary wide" style="margin-top:14px" data-act="saveGrowth">保存今天</button>
-  </div>
+
   <div class="card">
     <div style="font-size:14px;font-weight:750;margin-bottom:12px;">📅 累计数据</div>
     <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
@@ -1302,6 +1297,15 @@ async function meView(){
       <span style="font-size:13px;color:#4b5265;font-weight:600;">条知识库总量</span>
     </div>
   </div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:750;margin-bottom:8px;">💭 今日感悟</div>
+    <textarea class="answer-input" id="growthReflection" style="min-height:80px" placeholder="今天有什么感受、发现、想法…">${esc(growth.reflection || '')}</textarea>
+    <div style="font-size:14px;font-weight:750;margin:16px 0 8px;">🎯 明天调整</div>
+    <textarea class="answer-input" id="growthTomorrow" style="min-height:70px" placeholder="明天想改什么、做什么…">${esc(growth.tomorrow || '')}</textarea>
+    <button class="btn primary wide" style="margin-top:14px" data-act="saveGrowth">保存今天</button>
+  </div>
+
   <div class="card">
     <div style="font-size:14px;font-weight:750;margin-bottom:6px;">🔊 语音设置</div>
     <div style="font-size:12px;color:var(--sub);margin-bottom:10px;">设置英语单词和句子的朗读口音、语速。</div>
@@ -1317,6 +1321,7 @@ async function meView(){
       <button class="speed-btn ${LS.get('voice-speed',0.85)===1.1?'on':''}" data-act="setSpeed" data-speed="1.1">快</button>
     </div>
   </div>
+
   ${notes.length ? `
   <div class="card">
     <div style="font-size:14px;font-weight:750;margin-bottom:8px;">📝 我的笔记（${notes.length} 条）</div>
@@ -1327,6 +1332,7 @@ async function meView(){
     </div>`).join('')}
     ${notes.length > 5 ? `<div style="font-size:12px;color:var(--sub);text-align:center;padding-top:10px;">还有 ${notes.length - 5} 条…</div>` : ''}
   </div>` : ''}
+
   <div class="card">
     <div style="font-size:14px;font-weight:750;margin-bottom:12px;">🤖 AI 助手配置</div>
     <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:12px;">配置后可用：专业知识问答、复习评分、表达评分、AI 办公。推荐 DeepSeek。</div>
@@ -1347,18 +1353,20 @@ async function meView(){
     <button class="btn primary wide" style="margin-top:14px" data-act="saveAI">保存配置</button>
     <div style="margin-top:10px;font-size:12px;padding:8px 12px;border-radius:9px;${AI.enabled()?'background:#ecfdf5;color:#047857;':'background:#f1f2f9;color:#6b7280;'}">${AI.enabled() ? `✅ 已启用 · ${AI.provider}` : '⚪ 未启用 · 使用本地关键词判卷'}</div>
   </div>
+
   <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:6px;">数据管理</div>
-    <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">导出备份可以在其他设备恢复学习进度。</div>
-    <button class="btn primary wide" data-act="exportData">📤 导出备份</button>
-    <button class="btn wide" style="background:#f1f2f9;color:#4b5265;margin-top:8px;" data-act="importData">📥 导入备份</button>
-    <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
+    <div style="font-size:14px;font-weight:750;margin-bottom:6px;">数据备份</div>
+    <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">导出时会显示备份文本，你可以复制到其他地方保存。导入时把备份文本粘贴回来。</div>
+    <button class="btn primary wide" data-act="exportData">📤 导出备份（复制文本）</button>
+    <button class="btn wide" style="background:#f1f2f9;color:#4b5265;margin-top:8px;" data-act="importData">📥 导入备份（粘贴文本）</button>
   </div>
+
   <div class="card" style="border:1px solid #fee2e2;">
     <div style="font-size:14px;font-weight:750;margin-bottom:6px;color:#dc2626;">危险操作</div>
     <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">清空本设备所有学习进度。建议先导出备份。</div>
     <button class="btn danger wide" data-act="clearData">🗑 清空本设备数据</button>
   </div>
+
   <div class="foot-note">数据保存在本设备 · 知识库打包在 App 内</div>`;
 }
 
@@ -1478,7 +1486,7 @@ function renderReviewSheet(){
     <div style="font-size:13px;font-weight:700;color:#3b4256;margin-bottom:8px;">${isEn ? '你的中文翻译' : '你的答案'}</div>
     <textarea class="answer-input" id="reviewAnswer" placeholder="${isEn ? '写出这个单词的中文意思…' : '写下你的答案…'}" ${r.judged?'readonly':''}>${esc(r.answer||'')}</textarea>
     ${r.judged && r.result ? `
-      <div class="score-card fade-in" style="${r.result.correct?'':'background:#fff7ed;border-color:#fdba74;'}">
+      <div class="score-card" style="${r.result.correct?'':'background:#fff7ed;border-color:#fdba74;'}">
         <div class="score-head">
           <div class="score-num" style="${r.result.correct?'':'color:#c2410c;'}">${r.result.accuracy || r.result.score || 0}<span style="font-size:14px;opacity:.55;font-weight:600;letter-spacing:0;margin-left:2px;">%</span></div>
           <div class="score-label" style="${r.result.correct?'':'color:#c2410c;'}">${r.result.correct ? '✓ 正确' : '✗ 再想想'}</div>
@@ -1710,6 +1718,46 @@ async function sendAIMessage(){
 }
 
 /* ============================================================
+   导出/导入（文本方式）
+   ============================================================ */
+function doExport(){
+  const data = Store.buildExportData();
+  const json = JSON.stringify(data, null, 2);
+  openSheet(`
+    <div class="sheet-head">
+      <div class="sheet-emoji">📤</div>
+      <div style="flex:1;min-width:0;">
+        <h2>导出备份</h2>
+        <div class="muted">长按全选复制，保存到便签或文件</div>
+      </div>
+    </div>
+    <div class="sheet-sec">
+      <textarea id="exportText" readonly style="width:100%;height:320px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);">${esc(json)}</textarea>
+      <button class="btn primary wide" style="margin-top:14px;" data-act="copyExport">📋 复制全部到剪贴板</button>
+      <div style="font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.7;text-align:center;">
+        备份文件大小约 ${(json.length/1024).toFixed(1)} KB<br>
+        包含：学习进度、笔记、错题、AI 对话、复习计划
+      </div>
+    </div>
+  `);
+}
+function doImport(){
+  openSheet(`
+    <div class="sheet-head">
+      <div class="sheet-emoji">📥</div>
+      <div style="flex:1;min-width:0;">
+        <h2>导入备份</h2>
+        <div class="muted">把之前复制的备份文本粘贴到下面</div>
+      </div>
+    </div>
+    <div class="sheet-sec">
+      <textarea id="importText" placeholder="在这里粘贴备份 JSON 文本…" style="width:100%;height:320px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);"></textarea>
+      <button class="btn primary wide" style="margin-top:14px;" data-act="doImportConfirm">导入备份</button>
+    </div>
+  `);
+}
+
+/* ============================================================
    事件
    ============================================================ */
 let searchTimer = null;
@@ -1740,6 +1788,15 @@ view.addEventListener('click', async (e) => {
   if (act === 'studySub'){ state.studySub = t.dataset.sub; render(); return; }
   if (act === 'workSub'){ state.workSub = t.dataset.sub; render(); return; }
   if (act === 'discoverSub'){ state.discoverSub = t.dataset.sub; render(); return; }
+  if (act === 'taskJump'){
+    const key = t.dataset.key;
+    if (key === 'words') state.studySub = 'english';
+    else if (key === 'valve') state.studySub = 'valve';
+    else if (key === 'passage' || key === 'expr') state.studySub = 'express';
+    else if (key === 'news'){ state.tab = 'discover'; state.discoverSub = 'news'; }
+    render();
+    return;
+  }
   if (act === 'learnWord'){
     const card = t.closest('[data-word]');
     const w = card.dataset.word;
@@ -1897,8 +1954,12 @@ view.addEventListener('click', async (e) => {
     e.stopPropagation();
     const scheme = t.dataset.scheme;
     const name = t.dataset.name;
+    // 复制关键词
     copyText(name).then(() => toast('关键词已复制：' + name));
-    setTimeout(() => { try { window.location.href = scheme; } catch(err){} }, 100);
+    // 尝试唤起 App（Android 端 shouldOverrideUrlLoading 会拦截处理）
+    setTimeout(() => {
+      try { window.location.href = scheme; } catch(err){}
+    }, 100);
     return;
   }
   if (act === 'openWeb'){
@@ -1907,7 +1968,7 @@ view.addEventListener('click', async (e) => {
     const idx = +t.dataset.idx;
     const list = SEED.RECOMMEND[cat] || [];
     const r = list[idx];
-    if (r && r.web) window.open(r.web(r.name), '_blank');
+    if (r && r.web) window.location.href = r.web(r.name);
     return;
   }
   if (act === 'toggleCheck'){
@@ -1981,8 +2042,8 @@ view.addEventListener('click', async (e) => {
   }
   if (act === 'setAccent'){ LS.set('voice-accent', t.dataset.accent); render(); return; }
   if (act === 'setSpeed'){ LS.set('voice-speed', +t.dataset.speed); render(); return; }
-  if (act === 'exportData'){ Store.exportAll(); return; }
-  if (act === 'importData'){ document.getElementById('importFileInput').click(); return; }
+  if (act === 'exportData'){ doExport(); return; }
+  if (act === 'importData'){ doImport(); return; }
   if (act === 'saveAI'){
     const provider = document.getElementById('aiProvider').value;
     const key = document.getElementById('aiKey').value.trim();
@@ -2005,22 +2066,7 @@ view.addEventListener('click', async (e) => {
   if (act === 'globalSearchJump'){ handleSearchJump(t.dataset.type, +t.dataset.idx); return; }
 });
 
-document.addEventListener('change', (e) => {
-  if (e.target && e.target.id === 'importFileInput' && e.target.files[0]){
-    Store.importFile(e.target.files[0]);
-    e.target.value = '';
-  }
-});
-tabbar.addEventListener('click', (e) => {
-  const t = e.target.closest('.tab');
-  if (!t) return;
-  stopSpeak();
-  state.tab = t.dataset.tab;
-  render();
-});
-fab.addEventListener('click', () => openAIAssistant());
-document.getElementById('globalSearchBtn').addEventListener('click', openGlobalSearch);
-sheet.addEventListener('click', (e) => {
+sheet.addEventListener('click', async (e) => {
   const t = e.target.closest('[data-act]');
   if (!t) return;
   const act = t.dataset.act;
@@ -2044,7 +2090,47 @@ sheet.addEventListener('click', (e) => {
   }
   if (act === 'aiSend'){ sendAIMessage(); return; }
   if (act === 'globalSearchJump'){ handleSearchJump(t.dataset.type, +t.dataset.idx); return; }
+  if (act === 'copyExport'){
+    const ta = document.getElementById('exportText');
+    if (ta){
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      try{
+        const ok = document.execCommand('copy');
+        if (ok){ toast('已复制到剪贴板'); }
+        else { copyText(ta.value).then(ok2 => toast(ok2 ? '已复制' : '复制失败，请长按选择')); }
+      }catch(err){
+        copyText(ta.value).then(ok => toast(ok ? '已复制' : '复制失败，请长按选择'));
+      }
+    }
+    return;
+  }
+  if (act === 'doImportConfirm'){
+    const ta = document.getElementById('importText');
+    const text = (ta && ta.value || '').trim();
+    if (!text){ toast('请粘贴备份文本'); return; }
+    try{
+      Store.importDataFromText(text);
+      toast('导入成功，正在刷新…');
+      closeSheet();
+      setTimeout(() => location.reload(), 700);
+    }catch(err){
+      toast('格式不对：' + err.message);
+    }
+    return;
+  }
 });
+
+tabbar.addEventListener('click', (e) => {
+  const t = e.target.closest('.tab');
+  if (!t) return;
+  stopSpeak();
+  state.tab = t.dataset.tab;
+  render();
+});
+fab.addEventListener('click', () => openAIAssistant());
+document.getElementById('globalSearchBtn').addEventListener('click', openGlobalSearch);
+
 function toast(msg){
   const el = document.createElement('div');
   el.className = 'toast';
