@@ -20,16 +20,21 @@ public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
     private TextToSpeech tts;
+    private boolean ttsReady = false;
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 初始化 TTS
         tts = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
-                tts.setLanguage(Locale.US);
+                int result = tts.setLanguage(Locale.US);
+                ttsReady = (result != TextToSpeech.LANG_MISSING_DATA
+                        && result != TextToSpeech.LANG_NOT_SUPPORTED);
+                if (ttsReady) {
+                    tts.setSpeechRate(0.9f);
+                }
             }
         });
 
@@ -46,14 +51,18 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMediaPlaybackRequiresUserGesture(false);
 
-        // JS Bridge：语音合成
         webView.addJavascriptInterface(new Object() {
+
+            @JavascriptInterface
+            public boolean isTtsReady() {
+                return ttsReady;
+            }
+
             @JavascriptInterface
             public boolean speak(String text, String lang) {
-                if (tts == null || text == null) return false;
+                if (tts == null || !ttsReady || text == null) return false;
                 Locale locale;
                 if (lang != null && lang.startsWith("zh")) {
                     locale = Locale.CHINA;
@@ -71,31 +80,55 @@ public class MainActivity extends AppCompatActivity {
             public void stopSpeak() {
                 if (tts != null) tts.stop();
             }
-        }, "AndroidBridge");
 
-        // WebViewClient：处理外部链接
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                String url = request.getUrl().toString();
-                // 本地文件、http、https 都在 WebView 内加载
-                if (url.startsWith("file://") || url.startsWith("http://") || url.startsWith("https://")) {
+            /**
+             * 打开外部 App。scheme 是 App 协议，webUrl 是兜底网页。
+             */
+            @JavascriptInterface
+            public boolean openApp(String scheme, String webUrl) {
+                if (scheme == null || scheme.isEmpty()) return false;
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(scheme));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    return true;
+                } catch (Exception e) {
+                    // 没装 App，用浏览器打开兜底网页
+                    if (webUrl != null && !webUrl.isEmpty()) {
+                        try {
+                            Intent web = new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl));
+                            web.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(web);
+                            return true;
+                        } catch (Exception ignored) {}
+                    }
                     return false;
                 }
-                // 其他 scheme（如 weread://, douban://, xiaoyuzhou://）交给系统
+            }
+
+            @JavascriptInterface
+            public void openUrl(String url) {
+                if (url == null || url.isEmpty()) return;
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
-                } catch (Exception e) {
-                    // 没有安装对应的 App，用浏览器打开
-                    try {
-                        Intent webIntent = new Intent(Intent.ACTION_VIEW,
-                                Uri.parse("https://www.bing.com/search?q=" + Uri.encode(url)));
-                        webIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(webIntent);
-                    } catch (Exception ignored) {}
+                } catch (Exception ignored) {}
+            }
+        }, "AndroidBridge");
+
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
+                if (url.startsWith("file://") || url.startsWith("http://") || url.startsWith("https://")) {
+                    return false;
                 }
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (Exception ignored) {}
                 return true;
             }
         });
@@ -119,9 +152,7 @@ public class MainActivity extends AppCompatActivity {
             tts.stop();
             tts.shutdown();
         }
-        if (webView != null) {
-            webView.destroy();
-        }
+        if (webView != null) webView.destroy();
         super.onDestroy();
     }
 }

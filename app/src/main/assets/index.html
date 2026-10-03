@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f6f7fb">
 <title>日常 Daily</title>
+<script src="./data/valve.js"></script>
+<script src="./data/words.js"></script>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--ink:#111827;--sub:#6b7280;--brand:#4f46e5;--brand2:#7c3aed;--ok:#059669;--warn:#b45309;--err:#dc2626;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -20,9 +22,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 #view{flex:1;overflow-y:auto;padding:2px 16px 90px;-webkit-overflow-scrolling:touch;}
 #view::-webkit-scrollbar{width:0;}
 .tabbar{flex-shrink:0;display:flex;background:rgba(255,255,255,.95);border-top:1px solid rgba(0,0,0,.06);padding:8px 2px calc(8px + env(safe-area-inset-bottom));}
-.tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;border-radius:12px;cursor:pointer;color:#9aa0b0;font-size:9.5px;font-family:inherit;font-weight:600;transition:color .2s;}
+.tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;border-radius:12px;cursor:pointer;color:#9aa0b0;font-size:9.5px;font-family:inherit;font-weight:600;}
 .tab.on{color:var(--brand);}
-.tab-icon{font-size:16px;line-height:1;transition:transform .2s;}
+.tab-icon{font-size:16px;line-height:1;}
 .tab.on .tab-icon{transform:translateY(-1px) scale(1.12);}
 .card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid rgba(16,24,40,.045);box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 22px -14px rgba(16,24,40,.28);}
 .hero{padding:4px 4px 14px;}
@@ -42,23 +44,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 @keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
 .chips{display:flex;gap:8px;overflow-x:auto;margin:6px -16px;padding:6px 16px 12px;scrollbar-width:none;}
 .chips::-webkit-scrollbar{display:none;}
-.chip{border:1px solid #e6e8f0;background:#fff;color:#5b6276;padding:8px 15px;border-radius:99px;font-size:13.5px;font-weight:650;white-space:nowrap;cursor:pointer;font-family:inherit;transition:.2s;flex-shrink:0;}
-.chip.on{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 8px 18px -10px rgba(79,70,229,.9);}
+.chip{border:1px solid #e6e8f0;background:#fff;color:#5b6276;padding:8px 15px;border-radius:99px;font-size:13.5px;font-weight:650;white-space:nowrap;cursor:pointer;font-family:inherit;flex-shrink:0;}
+.chip.on{background:var(--brand);color:#fff;border-color:var(--brand);}
 .tip-card{background:#fff;border:1px dashed #dfe2ee;border-radius:16px;padding:14px;font-size:12.5px;line-height:1.7;color:#5b6276;margin-top:4px;}
 .search-box{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e6e8f0;border-radius:14px;padding:10px 14px;margin:8px 0 4px;}
-.search-box:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px rgba(79,70,229,.1);}
 .search-input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-family:inherit;font-size:14px;color:var(--ink);padding:2px 0;}
 .search-clear{border:0;background:#f1f2f9;color:#6b7280;width:24px;height:24px;border-radius:50%;font-size:12px;cursor:pointer;display:grid;place-items:center;font-family:inherit;}
 .know-cat{display:inline-block;font-size:11px;font-weight:700;color:var(--brand);background:#eef0ff;padding:3px 9px;border-radius:6px;margin-bottom:10px;}
 .know-q{font-size:15.5px;font-weight:750;line-height:1.5;letter-spacing:-.25px;}
 .know-a{font-size:13.5px;line-height:1.78;color:#3f4658;margin-top:12px;padding-top:12px;border-top:1px dashed #eceef4;}
 .know-key{margin-top:12px;background:#f8f9fd;border-left:3px solid var(--brand);padding:11px 13px;border-radius:0 10px 10px 0;font-size:12.5px;line-height:1.75;color:#4b5265;}
-.know-body{max-height:0;overflow:hidden;transition:max-height .6s ease;}
-.know.open .know-body{max-height:5000px;}
+.know-body{display:none;margin-top:12px;}
+.know.open .know-body{display:block;}
 .qa-block{margin-top:14px;padding-top:14px;border-top:1px dashed #eceef4;}
 .qa-label{font-size:12px;color:var(--brand);margin-bottom:8px;font-weight:700;}
 .qa-input{width:100%;min-height:60px;border:1px solid #e6e8f0;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:13.5px;line-height:1.65;resize:vertical;color:var(--ink);background:#fafbfe;}
-.qa-input:focus{outline:none;border-color:var(--brand);background:#fff;}
 .qa-row{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;}
 .qa-btn{background:var(--brand);color:#fff;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:650;border:0;cursor:pointer;font-family:inherit;}
 .qa-btn:disabled{opacity:.5;}
@@ -69,7 +69,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .note-block{margin-top:14px;padding-top:14px;border-top:1px dashed #eceef4;}
 .note-label{font-size:12px;color:var(--sub);margin-bottom:8px;font-weight:700;}
 .note-input{width:100%;min-height:70px;border:1px solid #e6e8f0;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:13.5px;line-height:1.65;resize:vertical;color:var(--ink);background:#fafbfe;}
-.note-input:focus{outline:none;border-color:var(--brand);background:#fff;}
 .subtabs{display:flex;gap:5px;background:#fff;border-radius:14px;padding:5px;margin-bottom:12px;border:1px solid rgba(16,24,40,.05);overflow-x:auto;scrollbar-width:none;}
 .subtabs::-webkit-scrollbar{display:none;}
 .subtab{border:0;background:none;padding:9px 12px;border-radius:10px;font-family:inherit;font-size:12.5px;font-weight:650;color:#7a8194;cursor:pointer;white-space:nowrap;flex-shrink:0;}
@@ -91,7 +90,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .score-keywords{display:flex;gap:6px;flex-wrap:wrap;}
 .score-keywords span{font-size:12px;background:#eef0ff;color:var(--brand);padding:4px 10px;border-radius:8px;font-weight:650;}
 .answer-input{width:100%;min-height:110px;border:1px solid #e6e8f0;border-radius:12px;padding:12px;font-family:inherit;font-size:14px;line-height:1.7;resize:vertical;color:var(--ink);background:#fafbfe;margin-top:6px;}
-.answer-input:focus{outline:none;border-color:var(--brand);background:#fff;}
 .word-big{font-size:32px;font-weight:850;letter-spacing:-.8px;line-height:1.1;color:#2b3244;}
 .word-ph{font-size:13px;color:var(--sub);margin-top:6px;}
 .news-card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid rgba(16,24,40,.045);}
@@ -100,12 +98,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .news-why{margin-top:11px;background:#f8f9fd;border-left:3px solid var(--brand);padding:10px 12px;border-radius:0 10px 10px 0;font-size:12.5px;line-height:1.72;color:#4b5265;}
 .news-think{margin-top:10px;}
 .news-think textarea{width:100%;border:1px dashed #dfe2ee;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;line-height:1.65;resize:vertical;min-height:56px;background:#fff;color:var(--ink);}
-.growth-item{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #f0f1f6;}
-.growth-item:last-child{border:0;}
-.growth-check{width:26px;height:26px;border-radius:9px;border:2px solid #dfe2ee;background:#fff;cursor:pointer;display:grid;place-items:center;font-size:14px;flex-shrink:0;font-family:inherit;padding:0;}
-.growth-check.on{background:var(--brand);border-color:var(--brand);color:#fff;}
-.growth-label{font-size:14px;font-weight:650;flex:1;}
-.growth-label.on{color:var(--sub);text-decoration:line-through;}
 .ai-msg{padding:12px 14px;border-radius:14px;margin-bottom:10px;font-size:13.5px;line-height:1.75;}
 .ai-msg.user{background:var(--brand);color:#fff;margin-left:32px;white-space:pre-wrap;}
 .ai-msg.bot{background:#f8f9fd;color:#2b3244;margin-right:32px;white-space:pre-wrap;}
@@ -127,21 +119,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .sheet-emoji{font-size:38px;line-height:1;}
 .sheet-head h2{font-size:19px;margin:0 0 4px;}
 .sheet-sec{margin-top:20px;}
-.sheet-sec h4{font-size:13px;margin:0 0 9px;color:var(--brand);font-weight:750;display:flex;align-items:center;gap:7px;}
-.sheet-sec h4::before{content:'';width:3px;height:13px;border-radius:2px;background:linear-gradient(90deg,var(--brand),var(--brand2));}
+.sheet-sec h4{font-size:13px;margin:0 0 9px;color:var(--brand);font-weight:750;}
 .sheet-sec ul,.sheet-sec ol{margin:0;padding-left:20px;}
 .sheet-sec li{font-size:13.5px;line-height:1.85;color:#3f4658;}
 .toast{position:absolute;left:50%;bottom:150px;transform:translate(-50%,10px);background:rgba(17,24,39,.92);color:#fff;font-size:13.5px;font-weight:600;padding:11px 20px;border-radius:14px;opacity:0;transition:.25s;z-index:99;pointer-events:none;max-width:90%;text-align:center;}
 .toast.show{opacity:1;transform:translate(-50%,0);}
-.fade-in{animation:fi .35s ease;}
-@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 .task-card{background:linear-gradient(135deg,#fff,#f8f9fd);border:1px solid rgba(79,70,229,.12);border-radius:18px;padding:16px;margin-bottom:14px;}
 .task-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
 .task-title{font-size:14px;font-weight:750;}
 .task-progress{font-size:12px;color:var(--sub);font-weight:600;}
 .task-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #eceef4;cursor:pointer;}
 .task-row:last-child{border:0;padding-bottom:0;}
-.task-row:active{background:#f8f9fd;}
 .task-check{width:22px;height:22px;border-radius:8px;border:2px solid #dfe2ee;background:#fff;display:grid;place-items:center;font-size:12px;flex-shrink:0;color:#fff;font-weight:700;}
 .task-check.on{background:var(--brand);border-color:var(--brand);}
 .task-label{flex:1;font-size:13px;font-weight:600;color:#3f4658;}
@@ -151,12 +139,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .weekly-card .tag{font-size:11px;font-weight:750;letter-spacing:1.5px;opacity:.75;margin-bottom:8px;}
 .weekly-card h3{font-size:17px;margin:0 0 8px;}
 .weekly-card p{font-size:13px;line-height:1.7;opacity:.92;margin:0 0 14px;}
-.weekly-score{font-size:36px;font-weight:850;letter-spacing:-1.5px;line-height:1;}
-.weekly-score small{font-size:14px;opacity:.55;font-weight:600;margin-left:3px;}
+.weekly-score{font-size:36px;font-weight:850;line-height:1;}
 .global-search-bar{display:flex;gap:8px;align-items:center;background:#f8f9fd;border-radius:12px;padding:10px 14px;margin-bottom:14px;}
 .global-search-bar input{flex:1;border:0;background:transparent;font-family:inherit;font-size:15px;outline:0;color:var(--ink);}
 .search-result{padding:12px 4px;border-bottom:1px solid #f0f1f6;cursor:pointer;}
-.search-result:last-child{border:0;}
 .search-result-type{display:inline-block;font-size:10.5px;font-weight:750;padding:2px 7px;border-radius:5px;margin-bottom:6px;}
 .type-valve{background:#eef0ff;color:var(--brand);}
 .type-note{background:#fef3c7;color:#b45309;}
@@ -164,7 +150,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .type-news{background:#fce7f3;color:#be185d;}
 .type-ai{background:#f3e8ff;color:#7c3aed;}
 .search-result-q{font-size:14px;font-weight:650;line-height:1.5;margin-bottom:4px;}
-.search-result-snippet{font-size:12.5px;color:var(--sub);line-height:1.6;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.search-result-snippet{font-size:12.5px;color:var(--sub);line-height:1.6;}
 .accent-row,.speed-row{display:flex;gap:6px;margin-top:8px;}
 .accent-btn,.speed-btn{flex:1;border:1px solid #e6e8f0;background:#fff;border-radius:10px;padding:8px;font-family:inherit;font-size:12.5px;font-weight:650;cursor:pointer;color:#5b6276;}
 .accent-btn.on,.speed-btn.on{background:var(--brand);color:#fff;border-color:var(--brand);}
@@ -174,14 +160,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .ai-role-btn.on{background:var(--brand);color:#fff;border-color:var(--brand);}
 .hobby-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
 .hobby-card{background:#fff;border:1px solid rgba(16,24,40,.05);border-radius:18px;padding:16px 14px;text-align:left;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:7px;}
-.hobby-card:active{transform:scale(.97);}
 .hobby-card .emoji{font-size:26px;line-height:1;}
 .hobby-card .h-name{font-size:14.5px;font-weight:700;color:var(--ink);}
 .hobby-card .h-cost{font-size:11.5px;color:var(--sub);}
-.loading-text{text-align:center;font-size:13px;color:var(--sub);padding:30px 0;}
-.status-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;}
-.status-badge.ok{background:#ecfdf5;color:#047857;}
-.status-badge.warn{background:#fef3c7;color:#b45309;}
+.growth-item{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #f0f1f6;}
+.growth-item:last-child{border:0;}
 </style>
 </head>
 <body>
@@ -200,7 +183,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 <script>
 /* ============================================================
-   基础工具
+   基础
    ============================================================ */
 const DAY = Math.floor((Date.now() + 8*3600*1000) / 86400000);
 const DAILY_WORD_COUNT = 3;
@@ -222,38 +205,12 @@ function dailyPick(arr,n,salt=0){
   return idx.slice(0,n).map(i=>arr[i]);
 }
 
-/* 内置种子 */
+/* ============================================================
+   数据（优先用外部 JS 文件，回退到内置）
+   ============================================================ */
 const SEED = {
-  WORDS: [
-    {w:'maintain',ph:'/meɪnˈteɪn/',pos:'v.',cn:'维持；保养',scene:'The valve must be maintained regularly.',sceneCn:'阀门需要定期保养。'},
-    {w:'pressure',ph:'/ˈpreʃə(r)/',pos:'n.',cn:'压力',scene:'The valve failed under high pressure.',sceneCn:'阀门在高压下失效了。'},
-    {w:'failure',ph:'/ˈfeɪljə(r)/',pos:'n.',cn:'失效；故障',scene:'We analyzed the cause of the seal failure.',sceneCn:'我们分析了密封失效的原因。'},
-    {w:'leak',ph:'/liːk/',pos:'v./n.',cn:'泄漏',scene:'The gasket started to leak after a week.',sceneCn:'垫片在一周后开始泄漏。'},
-    {w:'torque',ph:'/tɔːk/',pos:'n.',cn:'扭矩',scene:'Excessive torque may damage the stem.',sceneCn:'扭矩过大会损坏阀杆。'},
-    {w:'seal',ph:'/siːl/',pos:'n./v.',cn:'密封',scene:'The seal was replaced during maintenance.',sceneCn:'维护时更换了密封件。'},
-    {w:'corrosion',ph:'/kəˈrəʊʒn/',pos:'n.',cn:'腐蚀',scene:'Chloride ions cause stress corrosion cracking.',sceneCn:'氯离子会导致应力腐蚀开裂。'},
-    {w:'inspect',ph:'/ɪnˈspekt/',pos:'v.',cn:'检查；检验',scene:'Inspect the valve before installation.',sceneCn:'安装前检查阀门。'},
-    {w:'temperature',ph:'/ˈtemprətʃə(r)/',pos:'n.',cn:'温度',scene:'The operating temperature exceeds the limit.',sceneCn:'工作温度超过了限制。'},
-    {w:'reliable',ph:'/rɪˈlaɪəbl/',pos:'adj.',cn:'可靠的',scene:'We need a reliable supplier for this project.',sceneCn:'这个项目需要可靠的供应商。'}
-  ],
-  VALVE: {
-    '基础知识': [
-      {q:'闸阀为什么不适合调节流量？',a:'闸板在开启过程中，流体阻力变化大。',key:'闸阀设计用于全开/全关。长期半开会造成闸板振动、密封面冲蚀。'},
-      {q:'截止阀和闸阀的核心区别？',a:'截止阀的阀瓣沿阀座中心线升降；闸阀的闸板垂直于流道升降。',key:'截止阀：流阻大，但密封好、可调节。闸阀：流阻小，但只能全开全关。'},
-      {q:'球阀和蝶阀怎么选？',a:'球阀密封更可靠、流阻更小；蝶阀体积小、重量轻。',key:'高压、大口径选球阀。低压、大口径选蝶阀。'},
-      {q:'什么是公称压力（PN）？',a:'公称压力是阀门在基准温度下的最大允许工作压力。',key:'PN16 = 1.6 MPa。实际工作压力随温度升高而降低。'},
-      {q:'软密封和硬密封的区别？',a:'软密封用 PTFE、橡胶；硬密封用金属对金属。',key:'软密封：密封好，温度受限。硬密封：耐高温高压。'}
-    ],
-    '标准规范': [
-      {q:'API 600 是什么？',a:'钢制闸阀标准（Class 150~2500）。',key:'对应国标 GB/T 12234。'},
-      {q:'API 6D 是什么？',a:'管线阀门标准。',key:'要求全通径、可清管、防火、防静电、逸散性。'},
-      {q:'API 607 是什么？',a:'软密封阀门的防火试验标准。',key:'火烧后要求外部无泄漏。'}
-    ],
-    '材质选型': [
-      {q:'WCB 适用什么工况？',a:'碳钢铸件，适用水、油、气、蒸汽。',key:'-29℃~425℃。'},
-      {q:'CF8 和 CF8M 有什么区别？',a:'CF8 对应 304，CF8M 对应 316。',key:'CF8M 含钼，耐氯离子点蚀。'}
-    ]
-  },
+  WORDS: [],
+  VALVE: {},
   GENERAL: [
     {q:'为什么飞机能飞起来？',a:'机翼上下压力差产生升力。',key:'伯努利原理 + 牛顿第三定律。'},
     {q:'为什么通货膨胀影响生活？',a:'货币购买力下降。',key:'温和通胀（2% 左右）有利于经济。'},
@@ -270,12 +227,14 @@ const SEED = {
     '工作沟通': [
       {q:'客户催交期："这批阀门能不能提前一周交货？"',guide:'先说结论，再给原因，最后给替代方案。不要直接说"不行"。'},
       {q:'你要向领导申请增加项目预算。',guide:'先说需要多少，再说用来做什么，然后说能带来什么，最后说不给会怎样。'},
-      {q:'你要拒绝客户的不合理要求。',guide:'先谢，再拒，最后给替代方案。'}
+      {q:'你要拒绝客户的不合理要求。',guide:'先谢，再拒，最后给替代方案。'},
+      {q:'同事把你的功劳说成他的。',guide:'不要直接对抗。用"我们团队一起做的，我具体负责的是……"的方式。'}
     ],
     '社交场景': [
       {q:'刚认识一个人，想开启话题。',guide:'不要问"你是做什么的"。问"你最近在忙什么"。'},
       {q:'朋友很难过，你不知道怎么安慰。',guide:'先不说"别难过"。说"我在，你说，我听着"。'},
-      {q:'你不同意别人的观点。',guide:'先承接，再补充，不否定对方整个人。'}
+      {q:'你不同意别人的观点。',guide:'先承接，再补充，不否定对方整个人。'},
+      {q:'你想约一个很久没见的朋友出来。',guide:'给具体时间、具体地点，不要问"什么时候有空"。'}
     ]
   },
   EXPRESS_PASSAGES: [
@@ -313,53 +272,49 @@ const SEED = {
 };
 SEED.VALVE_ALL = [];
 
-/* ============================================================
-   外部数据加载 — 分开加载，明确错误
-   ============================================================ */
-window.__dataStatus = { valve: 0, words: 0, valveOk: false, wordsOk: false };
+const DATA_STATUS = { valve: 0, words: 0, valveOk: false, wordsOk: false };
 
-async function loadExternalData(){
-  // 加载 valve.json
-  try{
-    const vRes = await fetch('./data/valve.json');
-    if (vRes.ok){
-      const txt = await vRes.text();
-      const data = JSON.parse(txt);
-      SEED.VALVE = data;
-      SEED.VALVE_ALL = Object.keys(data).flatMap(cat => (data[cat]||[]).map(v => ({ ...v, cat })));
-      window.__dataStatus.valve = SEED.VALVE_ALL.length;
-      window.__dataStatus.valveOk = true;
-      console.log('✓ valve.json 加载成功：' + SEED.VALVE_ALL.length + ' 条');
-    } else {
-      console.warn('valve.json HTTP ' + vRes.status);
-    }
-  }catch(e){
-    console.error('✗ valve.json 加载失败：', e.message);
+function loadDataFromGlobals(){
+  // 加载 valve
+  if (window.__VALVE_DATA && typeof window.__VALVE_DATA === 'object'){
+    SEED.VALVE = window.__VALVE_DATA;
+    SEED.VALVE_ALL = Object.keys(SEED.VALVE).flatMap(cat =>
+      (Array.isArray(SEED.VALVE[cat]) ? SEED.VALVE[cat] : []).map(v => ({ ...v, cat }))
+    );
+    DATA_STATUS.valve = SEED.VALVE_ALL.length;
+    DATA_STATUS.valveOk = SEED.VALVE_ALL.length > 0;
+  } else {
+    // 回退：内置少量示例
+    SEED.VALVE = {
+      '基础知识': [
+        {q:'闸阀为什么不适合调节流量？',a:'闸板在开启过程中，流体阻力变化大。',key:'闸阀设计用于全开/全关。长期半开会造成闸板振动、密封面冲蚀。'},
+        {q:'截止阀和闸阀的核心区别？',a:'截止阀的阀瓣沿阀座中心线升降；闸阀的闸板垂直于流道升降。',key:'截止阀：流阻大，但密封好、可调节。闸阀：流阻小，但只能全开全关。'},
+        {q:'什么是公称压力（PN）？',a:'阀门在基准温度下的最大允许工作压力。',key:'PN16 = 1.6 MPa。'}
+      ]
+    };
+    SEED.VALVE_ALL = Object.keys(SEED.VALVE).flatMap(cat =>
+      SEED.VALVE[cat].map(v => ({ ...v, cat }))
+    );
+    DATA_STATUS.valve = SEED.VALVE_ALL.length;
+    DATA_STATUS.valveOk = false;
   }
 
-  // 加载 words.json
-  try{
-    const wRes = await fetch('./data/words.json');
-    if (wRes.ok){
-      const txt = await wRes.text();
-      const data = JSON.parse(txt);
-      if (Array.isArray(data) && data.length > 0){
-        SEED.WORDS = data;
-        window.__dataStatus.words = data.length;
-        window.__dataStatus.wordsOk = true;
-        console.log('✓ words.json 加载成功：' + data.length + ' 条');
-      }
-    }
-  }catch(e){
-    console.error('✗ words.json 加载失败：', e.message);
+  // 加载 words
+  if (Array.isArray(window.__WORDS_DATA) && window.__WORDS_DATA.length > 0){
+    SEED.WORDS = window.__WORDS_DATA;
+    DATA_STATUS.words = SEED.WORDS.length;
+    DATA_STATUS.wordsOk = true;
+  } else {
+    SEED.WORDS = [
+      {w:'maintain',ph:'/meɪnˈteɪn/',pos:'v.',cn:'维持；保养',scene:'The valve must be maintained regularly.',sceneCn:'阀门需要定期保养。'},
+      {w:'pressure',ph:'/ˈpreʃə(r)/',pos:'n.',cn:'压力',scene:'The valve failed under high pressure.',sceneCn:'阀门在高压下失效了。'},
+      {w:'leak',ph:'/liːk/',pos:'v./n.',cn:'泄漏',scene:'The gasket started to leak after a week.',sceneCn:'垫片在一周后开始泄漏。'}
+    ];
+    DATA_STATUS.words = SEED.WORDS.length;
+    DATA_STATUS.wordsOk = false;
   }
 
-  // 回退
-  if (!SEED.VALVE_ALL.length){
-    SEED.VALVE_ALL = Object.keys(SEED.VALVE).flatMap(cat => SEED.VALVE[cat].map(v => ({ ...v, cat })));
-    window.__dataStatus.valve = SEED.VALVE_ALL.length;
-    console.warn('! 使用内置阀知识：' + SEED.VALVE_ALL.length + ' 条');
-  }
+  console.log('数据加载状态：', DATA_STATUS);
 }
 
 /* ============================================================
@@ -504,7 +459,7 @@ const Store = {
     const notes = {};
     SEED.VALVE_ALL.forEach(v => { const n = LS.get('note:' + v.q, ''); if (n) notes[v.q] = n; });
     const data = {
-      app:'daily', version:16, exportedAt:new Date().toISOString(),
+      app:'daily', version:17, exportedAt:new Date().toISOString(),
       learned:this.getLearned(), thinkAnswers, notes,
       schedule:{ english:this.getSchedule('english'), work:this.getSchedule('work') },
       wrongBook:this.getWrongBook(), growth:LS.get('growth', {}), streak:this.getStreak(),
@@ -643,9 +598,8 @@ const AI = {
   },
   async scoreAnswer(question, answer, reference){
     if (!this.enabled()) return null;
-    const system = `你是严格的行业导师，正在给学员的答案打分。只输出 JSON：
-{"accuracy":0-100,"correct":["答对的点"],"missing":["遗漏的点"],"supplement":"工程师补充50-150字","keywords":["关键词1","关键词2","关键词3"]}
-评分要诚实：意思对了就算对，漏掉关键点要扣分。`;
+    const system = `你是严格的行业导师。只输出 JSON：
+{"accuracy":0-100,"correct":["答对的点"],"missing":["遗漏的点"],"supplement":"工程师补充50-150字","keywords":["关键词1","关键词2","关键词3"]}`;
     const user = `【问题】\n${question}\n\n【参考答案】\n${reference}\n\n【学员回答】\n${answer}\n\n请评分。`;
     const content = await this.call(system, user, 1000, 0.2);
     if (!content) return null;
@@ -658,8 +612,7 @@ const AI = {
   async judgeWord(word, userAnswer, correctCn){
     if (!this.enabled()) return null;
     const system = `你是英语单词判卷老师。只输出 JSON：
-{"correct":true/false,"score":0-100,"feedback":"一句话点评（20字以内）"}
-规则：意思对了就算对，不要求字面一致。`;
+{"correct":true/false,"score":0-100,"feedback":"一句话点评（20字以内）"}`;
     const user = `单词：${word}\n参考答案：${correctCn}\n学员回答：${userAnswer}`;
     const content = await this.call(system, user, 200, 0.1);
     if (!content) return null;
@@ -671,7 +624,7 @@ const AI = {
   },
   async answerQuestion(question, context){
     if (!this.enabled()) return null;
-    const system = `你是阀门行业资深工程师，有 20 年一线经验。用户在学习阀门知识时遇到了一个问题，请给出专业、准确、实用的回答。
+    const system = `你是阀门行业资深工程师。用户在学习阀门知识时遇到了一个问题，请给出专业、准确、实用的回答。
 要求：1. 直接回答 2. 涉及具体工况时给出适用条件和边界 3. 分点作答，总共 400 字以内 4. 不确定的地方说"建议核实"。`;
     const user = context ? `背景：${context}\n\n问题：${question}` : question;
     return await this.call(system, user, 1000, 0.4);
@@ -699,15 +652,14 @@ const AI = {
 };
 
 /* ============================================================
-   语音 — 优先用 Android 原生 TTS
+   语音（优先 Android 原生 TTS，失败回退浏览器 TTS）
    ============================================================ */
+function hasAndroidBridge(){
+  return !!(window.AndroidBridge && typeof window.AndroidBridge.speak === 'function');
+}
 function stopSpeak(){
-  // 停 Android TTS
-  try{ if (window.AndroidBridge && window.AndroidBridge.stopSpeak) window.AndroidBridge.stopSpeak(); }catch(e){}
-  // 停浏览器 TTS
-  if ('speechSynthesis' in window){
-    try{ speechSynthesis.cancel(); }catch(e){}
-  }
+  try{ if (hasAndroidBridge()) window.AndroidBridge.stopSpeak(); }catch(e){}
+  if ('speechSynthesis' in window){ try{ speechSynthesis.cancel(); }catch(e){} }
   document.querySelectorAll('.playing').forEach(b => b.classList.remove('playing'));
 }
 function toggleSpeak(text, lang, btn){
@@ -716,13 +668,12 @@ function toggleSpeak(text, lang, btn){
   stopSpeak();
   if (wasPlaying) return;
 
-  // 优先：Android 原生 TTS
-  if (window.AndroidBridge && window.AndroidBridge.speak){
+  // 尝试 Android 原生 TTS
+  if (hasAndroidBridge()){
     try{
       const ok = window.AndroidBridge.speak(text, lang || 'en-US');
       if (ok){
         if (btn) btn.classList.add('playing');
-        // 估算朗读时长，自动移除高亮
         const dur = Math.max(1500, text.length * (lang && lang.startsWith('zh') ? 220 : 320));
         setTimeout(() => { if (btn) btn.classList.remove('playing'); }, dur);
         return;
@@ -730,8 +681,8 @@ function toggleSpeak(text, lang, btn){
     }catch(e){ console.warn('Android TTS 失败：', e); }
   }
 
-  // 回退：浏览器 TTS
-  if (!('speechSynthesis' in window)){ toast('当前环境不支持语音朗读'); return; }
+  // 回退到浏览器 TTS
+  if (!('speechSynthesis' in window)){ toast('语音朗读不可用'); return; }
   const u = new SpeechSynthesisUtterance(text);
   const accent = LS.get('voice-accent', 'en-US');
   const speed = LS.get('voice-speed', 0.85);
@@ -778,8 +729,7 @@ const state = {
   passageHidden:false,
   currentWords:[],
   aiRole: LS.get('ai-role', 'engineer'),
-  currentSearch: [],
-  exprCat:'工作沟通'
+  currentSearch: []
 };
 
 const view = document.getElementById('view');
@@ -819,7 +769,7 @@ async function studyView(){
   return `
   <div class="hero"><div class="hero-k">学习 · ${todayStr()}</div><h1>每天进步一点</h1></div>
   <div class="subtabs">${subs.map(x => `<button class="subtab ${x.id===sub?'on':''}" data-act="studySub" data-sub="${x.id}">${x.label}</button>`).join('')}</div>
-  <div class="fade-in">${content}</div>`;
+  <div>${content}</div>`;
 }
 
 function todaySection(){
@@ -840,14 +790,13 @@ function todaySection(){
         <div class="task-count">${t.current}/${t.total} →</div>
       </div>
     `).join('')}
-    ${done === tasks.length ? `<div style="margin-top:12px;padding:10px 12px;background:#ecfdf5;border-radius:10px;font-size:12.5px;color:#047857;font-weight:650;text-align:center;">🎉 今日任务全部完成，给自己点个赞</div>` : ''}
+    ${done === tasks.length ? `<div style="margin-top:12px;padding:10px 12px;background:#ecfdf5;border-radius:10px;font-size:12.5px;color:#047857;font-weight:650;text-align:center;">🎉 今日任务全部完成</div>` : ''}
   </div>
   ${plan.length ? `
     <div class="card" style="background:linear-gradient(135deg,#eef0ff,#f6f0ff);border:1px solid #e2e5ff;">
       <div style="font-size:13px;font-weight:750;color:var(--brand);margin-bottom:8px;">🔗 工作带来的学习计划</div>
       ${plan.slice(0, 5).map((p, i) => `<div style="padding:9px 0;border-bottom:1px dashed #e2e5ff;font-size:12.5px;line-height:1.65;color:#3f4658;">
         <div style="font-weight:650;margin-bottom:3px;">${esc(p.problem)}</div>
-        <div style="color:var(--sub);">${esc((p.solution || '').slice(0, 60))}${(p.solution || '').length > 60 ? '…' : ''}</div>
         <div style="margin-top:6px;"><button class="link-btn" data-act="removeStudyPlan" data-idx="${i}">移除</button></div>
       </div>`).join('')}
     </div>
@@ -871,11 +820,10 @@ function weeklyTestSection(){
     return `
     <div class="weekly-card">
       <div class="tag">WEEKLY TEST</div>
-      <div style="margin:10px 0 12px;"><div class="weekly-score">${t.score}<small>/100</small></div></div>
+      <div style="margin:10px 0 12px;"><div class="weekly-score">${t.score}<small style="font-size:14px;opacity:.55;font-weight:600;">/100</small></div></div>
       <p>本周测试已完成于 ${new Date(t.takenAt).toLocaleDateString()}。</p>
       <button class="btn" style="background:rgba(255,255,255,.9);color:var(--brand);" data-act="startWeekly">重新测试</button>
-    </div>
-    <div class="tip-card">周测是自我检验，成绩不记录到任何地方。</div>`;
+    </div>`;
   }
   return `
   <div class="weekly-card">
@@ -898,7 +846,7 @@ function englishSection(){
   <div class="card" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:0;">
     <div style="font-size:11px;letter-spacing:1.5px;font-weight:750;opacity:.75;margin-bottom:8px;">TODAY'S ENGLISH</div>
     <div style="font-size:19px;font-weight:750;margin-bottom:10px;">${DAILY_WORD_COUNT} 个单词 + 工业场景</div>
-    <div style="font-size:13.5px;opacity:.92;line-height:1.7;">听发音 → 写中文 → AI 判断。</div>
+    <div style="font-size:13.5px;opacity:.92;line-height:1.7;">点 🔊 听发音 → 写中文 → AI 判断。</div>
   </div>
   ${dueItems.length ? `
   <div class="card" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fbbf24;">
@@ -939,9 +887,6 @@ function valveSection(){
   const q = state.searchQuery || '';
   const cat = state.valveCat || '全部';
   let list = [];
-  if (!SEED.VALVE_ALL.length){
-    return '<div class="loading-text">知识库加载中…</div>';
-  }
   if (q.trim()){
     list = SEED.VALVE_ALL.filter(v =>
       v.q.toLowerCase().includes(q.toLowerCase()) ||
@@ -958,14 +903,14 @@ function valveSection(){
   const dueItems = due.map(k => SEED.VALVE_ALL.find(v => v.q === k)).filter(Boolean);
   const wrongBook = Store.getWrongBook().filter(x => x.type === 'work');
   const cats = ['全部', ...Object.keys(SEED.VALVE)];
-  const loaded = window.__dataStatus.valveOk;
+  const loaded = DATA_STATUS.valveOk;
   return `
   <div class="card" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:0;">
     <div style="font-size:11px;letter-spacing:1.5px;font-weight:750;opacity:.75;margin-bottom:8px;">VALVE KNOWLEDGE</div>
     <div style="font-size:19px;font-weight:750;margin-bottom:10px;">${SEED.VALVE_ALL.length} 条专业知识</div>
     <div style="font-size:13.5px;opacity:.92;line-height:1.7;">${cats.length - 1} 大类 ${loaded ? '· 数据已加载' : '· 使用内置数据'}</div>
   </div>
-  ${!loaded ? `<div class="tip-card" style="background:#fef3c7;border-color:#fde68a;color:#92400e;">⚠️ valve.json 未加载成功，当前使用内置的 ${SEED.VALVE_ALL.length} 条数据。请检查 assets/data/valve.json 是否是合法 JSON。</div>` : ''}
+  ${!loaded ? `<div class="tip-card" style="background:#fef3c7;border-color:#fde68a;color:#92400e;">⚠️ valve.js 未加载成功，当前使用内置的 ${SEED.VALVE_ALL.length} 条数据。</div>` : ''}
   ${dueItems.length ? `
   <div class="card" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fbbf24;">
     <div style="font-size:13px;font-weight:750;color:#92400e;margin-bottom:8px;">🔁 巩固旧知识（${dueItems.length} 条待复习）</div>
@@ -985,7 +930,7 @@ function valveSection(){
     ${cats.map(c => `<button class="chip ${c===cat&&!q.trim()?'on':''}" data-act="valveCat" data-cat="${esc(c)}">${esc(c)}${c!=='全部'?` · ${(SEED.VALVE[c]||[]).length}`:''}</button>`).join('')}
   </div>
   <div class="sec-title">${q.trim() ? `搜索结果 (${list.length})` : (cat==='全部' ? '今天推荐' : cat + ' · ' + list.length + ' 条')} <span class="muted">点卡片展开</span></div>
-  ${list.length ? list.map((v,i) => knowCard(v, i)).join('') : '<div class="tip-card">没有找到。试试别的关键词，或点右下角 🤖 问 AI。</div>'}`;
+  ${list.length ? list.map((v,i) => knowCard(v, i)).join('') : '<div class="tip-card">没有找到。试试别的关键词。</div>'}`;
 }
 
 function knowCard(v, i){
@@ -1046,7 +991,7 @@ function generalSection(){
 
 function expressSection(){
   const passage = dailyPick(SEED.EXPRESS_PASSAGES, 1, 41)[0];
-  // 排除英语表达类别（用户反馈说还没学到）
+  // 排除英语表达
   const sceneCats = Object.keys(SEED.SCENES).filter(c => c !== '英语表达');
   const allScenes = sceneCats.flatMap(c => SEED.SCENES[c].map(s => ({ ...s, cat:c })));
   const todayScene = dailyPick(allScenes, 1, 47)[0];
@@ -1087,7 +1032,7 @@ function renderGradeCard(g){
   }
   const score = g.score || 0;
   const level = g.level || (score >= 85 ? '优秀' : score >= 70 ? '良好' : score >= 55 ? '合格' : '待提升');
-  return `<div class="score-card fade-in">
+  return `<div class="score-card">
     <div class="score-head">
       <div class="score-num">${score}<span style="font-size:14px;opacity:.55;font-weight:600;letter-spacing:0;margin-left:2px;">/100</span></div>
       <div class="score-label">${esc(level)} · AI 评分</div>
@@ -1115,7 +1060,7 @@ async function workView(){
   return `
   <div class="hero"><div class="hero-k">工作 · 解决问题</div><h1>把学到的用起来</h1></div>
   <div class="subtabs">${subs.map(s => `<button class="subtab ${s.id===state.workSub?'on':''}" data-act="workSub" data-sub="${s.id}">${s.label}</button>`).join('')}</div>
-  <div class="fade-in">${content}</div>`;
+  <div>${content}</div>`;
 }
 
 function officeSection(){
@@ -1190,7 +1135,7 @@ async function discoverView(){
   return `
   <div class="hero"><div class="hero-k">发现 · 认知提升</div><h1>${sub === 'news' ? '今日世界' : '发现好东西'}</h1></div>
   <div class="subtabs">${subs.map(s => `<button class="subtab ${s.id===sub?'on':''}" data-act="discoverSub" data-sub="${s.id}">${s.label}</button>`).join('')}</div>
-  <div class="fade-in">${content}</div>`;
+  <div>${content}</div>`;
 }
 
 function newsSection(){
@@ -1237,21 +1182,21 @@ function recommendSection(){
     <div style="font-size:13.5px;line-height:1.78;color:#3f4658;margin-top:13px;padding-top:13px;border-top:1px dashed #eceef4;">${esc(r.why)}</div>
     <div style="margin-top:11px;padding:9px 12px;background:#f8f9fd;border-left:3px solid var(--brand);border-radius:0 10px 10px 0;font-size:12.5px;color:#4b5265;"><b style="color:var(--brand)">适合场景：</b>${esc(r.scene)}</div>
     <div class="recommend-open">
-      ${r.scheme ? `<button class="rec-btn app" data-act="openApp" data-scheme="${esc(r.scheme)}" data-name="${esc(r.name)}">📱 打开 App</button>` : ''}
+      ${r.scheme ? `<button class="rec-btn app" data-act="openApp" data-scheme="${esc(r.scheme)}" data-name="${esc(r.name)}" data-cat="${esc(cat)}" data-idx="${idx}">📱 打开 App</button>` : ''}
       <button class="rec-btn web" data-act="openWeb" data-cat="${esc(cat)}" data-idx="${idx}">🌐 网页打开</button>
     </div>
   </div>`).join('')}`;
 }
 
 /* ============================================================
-   我的视图（去掉今日打卡）
+   我的视图
    ============================================================ */
 async function meView(){
   const stats = Store.stats();
   const streak = Store.getStreak();
   const notes = Store.getAllNotes();
   const growth = Store.getGrowth() || {};
-  const dataStatus = window.__dataStatus || { valve: 0, words: 0, valveOk: false, wordsOk: false };
+  const ds = DATA_STATUS;
   return `
   <div class="hero">
     <div class="hero-k">我的</div>
@@ -1262,16 +1207,16 @@ async function meView(){
   <div class="card">
     <div style="font-size:14px;font-weight:750;margin-bottom:12px;">📊 数据加载状态</div>
     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;">
-      <span class="status-badge ${dataStatus.valveOk?'ok':'warn'}">${dataStatus.valveOk?'✓':'⚠'}</span>
+      <span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;${ds.valveOk?'background:#ecfdf5;color:#047857;':'background:#fef3c7;color:#b45309;'}">${ds.valveOk?'✓ 已加载':'⚠ 未加载'}</span>
       <span style="flex:1;color:#4b5265;">阀门知识库</span>
-      <span style="font-weight:700;color:${dataStatus.valveOk?'#047857':'#b45309'};">${dataStatus.valve} 条</span>
+      <span style="font-weight:700;color:${ds.valveOk?'#047857':'#b45309'};">${ds.valve} 条</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;">
-      <span class="status-badge ${dataStatus.wordsOk?'ok':'warn'}">${dataStatus.wordsOk?'✓':'⚠'}</span>
+      <span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;${ds.wordsOk?'background:#ecfdf5;color:#047857;':'background:#fef3c7;color:#b45309;'}">${ds.wordsOk?'✓ 已加载':'⚠ 未加载'}</span>
       <span style="flex:1;color:#4b5265;">英语单词库</span>
-      <span style="font-weight:700;color:${dataStatus.wordsOk?'#047857':'#b45309'};">${dataStatus.words} 条</span>
+      <span style="font-weight:700;color:${ds.wordsOk?'#047857':'#b45309'};">${ds.words} 条</span>
     </div>
-    ${!dataStatus.valveOk ? `<div style="font-size:12px;color:#b45309;line-height:1.7;margin-top:8px;padding:10px 12px;background:#fef3c7;border-radius:10px;">⚠️ valve.json 未加载成功。请确认 <code>assets/data/valve.json</code> 是合法 JSON。</div>` : ''}
+    ${!ds.valveOk ? `<div style="font-size:12px;color:#b45309;line-height:1.7;margin-top:8px;padding:10px 12px;background:#fef3c7;border-radius:10px;">⚠️ 请确认 assets/data/valve.js 存在且内容以 <code>window.__VALVE_DATA = </code> 开头。</div>` : ''}
   </div>
 
   <div class="card">
@@ -1287,10 +1232,6 @@ async function meView(){
     <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
       <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.wrongCount}</span>
       <span style="font-size:13px;color:#4b5265;font-weight:600;">条错题</span>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
-      <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.thinkCount}</span>
-      <span style="font-size:13px;color:#4b5265;font-weight:600;">道逻辑练习</span>
     </div>
     <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;">
       <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.totalValve}</span>
@@ -1322,17 +1263,6 @@ async function meView(){
     </div>
   </div>
 
-  ${notes.length ? `
-  <div class="card">
-    <div style="font-size:14px;font-weight:750;margin-bottom:8px;">📝 我的笔记（${notes.length} 条）</div>
-    ${notes.slice(0, 5).map(n => `<div style="padding:12px 0;border-bottom:1px dashed #eceef4;">
-      <div style="font-size:11px;font-weight:750;color:var(--brand);margin-bottom:4px;">${esc(n.cat)}</div>
-      <div style="font-size:13.5px;font-weight:650;line-height:1.5;color:#2b3244;margin-bottom:8px;">${esc(n.q)}</div>
-      <div style="font-size:12.5px;line-height:1.7;color:#4b5265;background:#fafbfe;padding:10px 12px;border-radius:10px;white-space:pre-wrap;">${esc(n.note)}</div>
-    </div>`).join('')}
-    ${notes.length > 5 ? `<div style="font-size:12px;color:var(--sub);text-align:center;padding-top:10px;">还有 ${notes.length - 5} 条…</div>` : ''}
-  </div>` : ''}
-
   <div class="card">
     <div style="font-size:14px;font-weight:750;margin-bottom:12px;">🤖 AI 助手配置</div>
     <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:12px;">配置后可用：专业知识问答、复习评分、表达评分、AI 办公。推荐 DeepSeek。</div>
@@ -1356,7 +1286,7 @@ async function meView(){
 
   <div class="card">
     <div style="font-size:14px;font-weight:750;margin-bottom:6px;">数据备份</div>
-    <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">导出时会显示备份文本，你可以复制到其他地方保存。导入时把备份文本粘贴回来。</div>
+    <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">导出时会显示备份文本，复制到便签保存。导入时把文本粘贴回来。</div>
     <button class="btn primary wide" data-act="exportData">📤 导出备份（复制文本）</button>
     <button class="btn wide" style="background:#f1f2f9;color:#4b5265;margin-top:8px;" data-act="importData">📥 导入备份（粘贴文本）</button>
   </div>
@@ -1586,7 +1516,7 @@ function openGlobalSearch(){
     </div>
     <div class="global-search-bar" style="margin-top:14px;">
       <span style="font-size:15px;opacity:.5;">🔍</span>
-      <input id="globalSearchInput" placeholder="输入关键词，比如 WCB / 密封 / 卡涩…" autofocus>
+      <input id="globalSearchInput" placeholder="输入关键词…" autofocus>
     </div>
     <div id="globalSearchResults" style="max-height:60vh;overflow-y:auto;"></div>
   `);
@@ -1603,10 +1533,7 @@ function runGlobalSearch(q){
   const el = document.getElementById('globalSearchResults');
   if (!el) return;
   q = (q || '').trim();
-  if (!q){
-    el.innerHTML = `<div style="font-size:12.5px;color:var(--sub);text-align:center;padding:20px 0;line-height:1.7;">输入关键词开始搜索<br>支持：阀门知识、笔记、单词、新闻、AI 对话</div>`;
-    return;
-  }
+  if (!q){ el.innerHTML = ''; return; }
   const lq = q.toLowerCase();
   const results = [];
   SEED.VALVE_ALL.forEach(v => {
@@ -1614,20 +1541,10 @@ function runGlobalSearch(q){
       results.push({ type:'valve', typeLabel:'知识', q:v.q, snippet:v.a.slice(0, 80) });
     }
   });
-  SEED.VALVE_ALL.forEach(v => {
-    const n = Store.getNote(v.q);
-    if (n && n.toLowerCase().includes(lq)) results.push({ type:'note', typeLabel:'笔记', q:v.q, snippet:n.slice(0, 100) });
-  });
   SEED.WORDS.forEach(w => {
     if (w.w.toLowerCase().includes(lq) || w.cn.includes(q)) results.push({ type:'word', typeLabel:'单词', q:w.w, snippet:w.cn });
   });
-  SEED.NEWS.forEach(n => {
-    if (n.t.toLowerCase().includes(lq) || n.d.toLowerCase().includes(lq)) results.push({ type:'news', typeLabel:'新闻', q:n.t, snippet:n.d.slice(0, 80) });
-  });
-  Store.getAIHistory().forEach(h => {
-    if (h.content.toLowerCase().includes(lq)) results.push({ type:'ai', typeLabel:'AI', q:(h.role === 'user' ? '我：' : 'AI：') + h.content.slice(0, 30), snippet:h.content.slice(0, 100) });
-  });
-  if (!results.length){ el.innerHTML = `<div style="font-size:12.5px;color:var(--sub);text-align:center;padding:20px 0;">没有找到「${esc(q)}」相关内容</div>`; return; }
+  if (!results.length){ el.innerHTML = `<div style="font-size:12.5px;color:var(--sub);text-align:center;padding:20px 0;">没有找到「${esc(q)}」</div>`; return; }
   state.currentSearch = results;
   el.innerHTML = results.slice(0, 30).map((r, i) => `
     <div class="search-result" data-act="globalSearchJump" data-type="${r.type}" data-idx="${i}">
@@ -1640,7 +1557,7 @@ function runGlobalSearch(q){
 function handleSearchJump(type, idx){
   const r = (state.currentSearch || [])[idx];
   if (!r) return;
-  if (type === 'valve' || type === 'note'){
+  if (type === 'valve'){
     state.tab = 'study';
     state.studySub = 'valve';
     state.searchQuery = r.q;
@@ -1652,14 +1569,6 @@ function handleSearchJump(type, idx){
     state.studySub = 'english';
     closeSheet();
     render();
-  } else if (type === 'news'){
-    state.tab = 'discover';
-    state.discoverSub = 'news';
-    closeSheet();
-    render();
-  } else if (type === 'ai'){
-    closeSheet();
-    openAIAssistant();
   }
 }
 
@@ -1683,8 +1592,8 @@ function openAIAssistant(){
       ${roles.map(r => `<button class="ai-role-btn ${r.id===role?'on':''}" data-act="aiRole" data-role="${r.id}">${r.name}</button>`).join('')}
     </div>
     <div id="aiChat" style="margin-top:14px;max-height:50vh;overflow-y:auto;">
-      ${msgs.length === 0 ? `<div style="text-align:center;font-size:12.5px;color:var(--sub);padding:20px 0;line-height:1.7;">试试问我：<br>· DN200 闸阀怎么选？<br>· B7 和 B7M 有什么区别？<br>· 帮我写一封催款邮件</div>` : ''}
-      ${msgs.map((m, i) => `<div class="ai-msg ${m.role === 'user' ? 'user' : 'bot'}">${esc(m.content)}${m.role === 'bot' ? `<div style="margin-top:8px;"><button class="link-btn" data-act="saveAIToNote" data-idx="${i}" style="font-size:11px;padding:2px 6px;">📝 存到笔记</button></div>` : ''}</div>`).join('')}
+      ${msgs.length === 0 ? `<div style="text-align:center;font-size:12.5px;color:var(--sub);padding:20px 0;line-height:1.7;">试试问我：<br>· DN200 闸阀怎么选？<br>· B7 和 B7M 有什么区别？</div>` : ''}
+      ${msgs.map((m, i) => `<div class="ai-msg ${m.role === 'user' ? 'user' : 'bot'}">${esc(m.content)}</div>`).join('')}
       ${state.aiLoading ? `<div class="ai-msg bot">⏳ 思考中…</div>` : ''}
     </div>
     <div style="display:flex;gap:8px;margin-top:14px;">
@@ -1718,7 +1627,7 @@ async function sendAIMessage(){
 }
 
 /* ============================================================
-   导出/导入（文本方式）
+   导出/导入
    ============================================================ */
 function doExport(){
   const data = Store.buildExportData();
@@ -1732,11 +1641,10 @@ function doExport(){
       </div>
     </div>
     <div class="sheet-sec">
-      <textarea id="exportText" readonly style="width:100%;height:320px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);">${esc(json)}</textarea>
+      <textarea id="exportText" readonly style="width:100%;height:300px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);-webkit-user-select:text;user-select:text;">${esc(json)}</textarea>
       <button class="btn primary wide" style="margin-top:14px;" data-act="copyExport">📋 复制全部到剪贴板</button>
       <div style="font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.7;text-align:center;">
-        备份文件大小约 ${(json.length/1024).toFixed(1)} KB<br>
-        包含：学习进度、笔记、错题、AI 对话、复习计划
+        备份文件大小约 ${(json.length/1024).toFixed(1)} KB
       </div>
     </div>
   `);
@@ -1751,7 +1659,7 @@ function doImport(){
       </div>
     </div>
     <div class="sheet-sec">
-      <textarea id="importText" placeholder="在这里粘贴备份 JSON 文本…" style="width:100%;height:320px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);"></textarea>
+      <textarea id="importText" placeholder="在这里粘贴备份 JSON 文本…" style="width:100%;height:300px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);-webkit-user-select:text;user-select:text;"></textarea>
       <button class="btn primary wide" style="margin-top:14px;" data-act="doImportConfirm">导入备份</button>
     </div>
   `);
@@ -1784,10 +1692,13 @@ view.addEventListener('click', async (e) => {
   const t = e.target.closest('[data-act]');
   if (!t) return;
   const act = t.dataset.act;
+
   if (act === 'speak'){ e.stopPropagation(); toggleSpeak(t.dataset.text, t.dataset.lang || 'en-US', t); return; }
+
   if (act === 'studySub'){ state.studySub = t.dataset.sub; render(); return; }
   if (act === 'workSub'){ state.workSub = t.dataset.sub; render(); return; }
   if (act === 'discoverSub'){ state.discoverSub = t.dataset.sub; render(); return; }
+
   if (act === 'taskJump'){
     const key = t.dataset.key;
     if (key === 'words') state.studySub = 'english';
@@ -1797,6 +1708,7 @@ view.addEventListener('click', async (e) => {
     render();
     return;
   }
+
   if (act === 'learnWord'){
     const card = t.closest('[data-word]');
     const w = card.dataset.word;
@@ -1806,30 +1718,40 @@ view.addEventListener('click', async (e) => {
     else learned.splice(i,1);
     Store.setLearned(learned);
     render();
-    toast(i < 0 ? '已标记为已学 · 进入复习队列' : '已取消');
+    toast(i < 0 ? '已标记为已学' : '已取消');
     return;
   }
+
   if (act === 'knowToggle'){
-    const q = t.dataset.q;
+    // 修复：data-q 在卡片上，不在 toggle div 上
+    const card = t.closest('.know');
+    const q = card ? card.dataset.q : null;
+    if (!q) return;
     state.openKnow = state.openKnow === q ? null : q;
     render();
     return;
   }
+
   if (act === 'knowDone'){
-    const q = t.dataset.q;
+    e.stopPropagation();
+    const card = t.closest('.know');
+    const q = card ? card.dataset.q : null;
+    if (!q) return;
     const done = Store.getKnowDone();
     const i = done.indexOf(q);
     if (i < 0){ done.push(q); Store.ensureSchedule('work', q); }
     else done.splice(i, 1);
     Store.setKnowDone(done);
-    toast(i < 0 ? '已标记掌握 · 明天进入复习' : '已取消标记');
+    toast(i < 0 ? '已标记掌握' : '已取消');
     render();
     return;
   }
+
   if (act === 'valveCat'){ state.valveCat = t.dataset.cat; state.searchQuery = ''; state.openKnow = null; render(); return; }
   if (act === 'searchClear'){ state.searchQuery = ''; render(); return; }
   if (act === 'markPassageDone'){ Store.markTodayDone('passage'); render(); toast('已记录'); return; }
   if (act === 'removeStudyPlan'){ Store.removeStudyPlan(+t.dataset.idx); render(); return; }
+
   if (act === 'linkToStudy'){
     const idx = +t.dataset.idx;
     const records = LS.get('work-records', []);
@@ -1837,6 +1759,7 @@ view.addEventListener('click', async (e) => {
     if (rec){ Store.linkWorkToStudy(rec); toast('已加入学习计划'); render(); }
     return;
   }
+
   if (act === 'askAbout'){
     e.stopPropagation();
     const q = t.dataset.q;
@@ -1864,6 +1787,7 @@ view.addEventListener('click', async (e) => {
     render();
     return;
   }
+
   if (act === 'saveAskToNote'){
     e.stopPropagation();
     const q = t.dataset.q;
@@ -1877,6 +1801,7 @@ view.addEventListener('click', async (e) => {
     return;
   }
   if (act === 'clearAsk'){ LS.del('ask-cache:' + t.dataset.q); render(); return; }
+
   if (act === 'startReview'){
     e.stopPropagation();
     const type = t.dataset.type;
@@ -1899,6 +1824,7 @@ view.addEventListener('click', async (e) => {
     startReview('work', list);
     return;
   }
+
   if (act === 'togglePassage'){ state.passageHidden = !state.passageHidden; render(); return; }
   if (act === 'speakPassage'){
     const title = t.dataset.title;
@@ -1906,6 +1832,7 @@ view.addEventListener('click', async (e) => {
     if (p) toggleSpeak(p.text, 'zh-CN', t);
     return;
   }
+
   if (act === 'gradeAnswer'){
     e.stopPropagation();
     const scene = t.dataset.scene;
@@ -1933,7 +1860,6 @@ view.addEventListener('click', async (e) => {
       }
     }catch(err){
       if (resultEl) resultEl.innerHTML = renderGradeCard({ error:'调用失败：' + (err.message || '未知错误') });
-      toast('评分失败');
     }finally{
       t.disabled = false;
       t.textContent = '🔄 重新评分';
@@ -1949,39 +1875,62 @@ view.addEventListener('click', async (e) => {
     render();
     return;
   }
+
   if (act === 'recCat'){ state.recommendCat = t.dataset.cat; render(); return; }
+
   if (act === 'openApp'){
     e.stopPropagation();
     const scheme = t.dataset.scheme;
     const name = t.dataset.name;
+    const cat = t.dataset.cat;
+    const idx = +t.dataset.idx;
+    // 找出该推荐项的 web 兜底链接
+    let webUrl = '';
+    try{
+      const list = SEED.RECOMMEND[cat] || [];
+      const r = list[idx];
+      if (r && r.web) webUrl = r.web(name);
+    }catch(err){}
     // 复制关键词
     copyText(name).then(() => toast('关键词已复制：' + name));
-    // 尝试唤起 App（Android 端 shouldOverrideUrlLoading 会拦截处理）
-    setTimeout(() => {
+    // 用原生 Intent 打开 App
+    if (hasAndroidBridge() && window.AndroidBridge.openApp){
+      try{
+        window.AndroidBridge.openApp(scheme, webUrl);
+      }catch(err){
+        console.warn('openApp 失败：', err);
+        if (webUrl) window.location.href = webUrl;
+      }
+    } else {
+      // 浏览器环境：直接跳 scheme，1 秒后如果还在页面就打开网页
+      const t0 = Date.now();
       try { window.location.href = scheme; } catch(err){}
-    }, 100);
+      setTimeout(() => {
+        if (Date.now() - t0 < 2500 && document.visibilityState === 'visible'){
+          if (webUrl) window.location.href = webUrl;
+        }
+      }, 1200);
+    }
     return;
   }
+
   if (act === 'openWeb'){
     e.stopPropagation();
     const cat = t.dataset.cat;
     const idx = +t.dataset.idx;
     const list = SEED.RECOMMEND[cat] || [];
     const r = list[idx];
-    if (r && r.web) window.location.href = r.web(r.name);
+    if (r && r.web){
+      const url = r.web(r.name);
+      if (hasAndroidBridge() && window.AndroidBridge.openUrl){
+        try{ window.AndroidBridge.openUrl(url); }catch(err){ window.location.href = url; }
+      } else {
+        window.location.href = url;
+      }
+    }
     return;
   }
-  if (act === 'toggleCheck'){
-    const key = t.dataset.key;
-    const today = todayStr();
-    const growth = Store.getGrowth() || {};
-    growth.checks = growth.checks || {};
-    growth.checks[today] = growth.checks[today] || {};
-    growth.checks[today][key] = !growth.checks[today][key];
-    Store.setGrowth(growth);
-    render();
-    return;
-  }
+
   if (act === 'saveGrowth'){
     const growth = Store.getGrowth() || {};
     const refl = document.getElementById('growthReflection');
@@ -1992,6 +1941,7 @@ view.addEventListener('click', async (e) => {
     toast('已保存');
     return;
   }
+
   if (act === 'saveWorkRecord'){
     const p = document.getElementById('workProblem');
     const s = document.getElementById('workSolution');
@@ -2007,6 +1957,7 @@ view.addEventListener('click', async (e) => {
     render();
     return;
   }
+
   if (act === 'quickAsk'){
     if (!AI.enabled()){ toast('请先在「我的」页配置 AI'); return; }
     Store.addAIHistory('user', t.dataset.prompt);
@@ -2022,28 +1973,20 @@ view.addEventListener('click', async (e) => {
     openAIAssistant();
     return;
   }
+
   if (act === 'aiSend'){ sendAIMessage(); return; }
   if (act === 'aiRole'){ state.aiRole = t.dataset.role; LS.set('ai-role', state.aiRole); openAIAssistant(); return; }
   if (act === 'clearAIHistory'){
     if (confirm('清空所有 AI 对话历史？')){ Store.clearAIHistory(); openAIAssistant(); }
     return;
   }
-  if (act === 'saveAIToNote'){
-    const idx = +t.dataset.idx;
-    const msg = Store.getAIHistory()[idx];
-    if (!msg) return;
-    const q = prompt('保存到哪个知识点的笔记里？输入关键词：', '');
-    if (q){
-      const hit = SEED.VALVE_ALL.find(v => v.q.includes(q));
-      if (hit){ Store.appendNote(hit.q, '【AI 对话】\n' + msg.content); toast('已存入笔记'); }
-      else toast('没找到匹配的知识点');
-    }
-    return;
-  }
+
   if (act === 'setAccent'){ LS.set('voice-accent', t.dataset.accent); render(); return; }
   if (act === 'setSpeed'){ LS.set('voice-speed', +t.dataset.speed); render(); return; }
+
   if (act === 'exportData'){ doExport(); return; }
   if (act === 'importData'){ doImport(); return; }
+
   if (act === 'saveAI'){
     const provider = document.getElementById('aiProvider').value;
     const key = document.getElementById('aiKey').value.trim();
@@ -2055,6 +1998,7 @@ view.addEventListener('click', async (e) => {
     render();
     return;
   }
+
   if (act === 'clearData'){
     if (confirm('确定清空本设备所有学习进度？建议先导出备份。')){
       Store.clearAll();
@@ -2063,6 +2007,7 @@ view.addEventListener('click', async (e) => {
     }
     return;
   }
+
   if (act === 'globalSearchJump'){ handleSearchJump(t.dataset.type, +t.dataset.idx); return; }
 });
 
@@ -2076,18 +2021,6 @@ sheet.addEventListener('click', async (e) => {
   if (act === 'rate'){ rateAndNext(t.dataset.rating); return; }
   if (act === 'aiRole'){ state.aiRole = t.dataset.role; LS.set('ai-role', state.aiRole); openAIAssistant(); return; }
   if (act === 'clearAIHistory'){ if (confirm('清空所有 AI 对话历史？')){ Store.clearAIHistory(); openAIAssistant(); } return; }
-  if (act === 'saveAIToNote'){
-    const idx = +t.dataset.idx;
-    const msg = Store.getAIHistory()[idx];
-    if (!msg) return;
-    const q = prompt('保存到哪个知识点的笔记里？输入关键词：', '');
-    if (q){
-      const hit = SEED.VALVE_ALL.find(v => v.q.includes(q));
-      if (hit){ Store.appendNote(hit.q, '【AI 对话】\n' + msg.content); toast('已存入笔记'); closeSheet(); }
-      else toast('没找到匹配的知识点');
-    }
-    return;
-  }
   if (act === 'aiSend'){ sendAIMessage(); return; }
   if (act === 'globalSearchJump'){ handleSearchJump(t.dataset.type, +t.dataset.idx); return; }
   if (act === 'copyExport'){
@@ -2095,13 +2028,7 @@ sheet.addEventListener('click', async (e) => {
     if (ta){
       ta.select();
       ta.setSelectionRange(0, ta.value.length);
-      try{
-        const ok = document.execCommand('copy');
-        if (ok){ toast('已复制到剪贴板'); }
-        else { copyText(ta.value).then(ok2 => toast(ok2 ? '已复制' : '复制失败，请长按选择')); }
-      }catch(err){
-        copyText(ta.value).then(ok => toast(ok ? '已复制' : '复制失败，请长按选择'));
-      }
+      copyText(ta.value).then(ok => toast(ok ? '已复制到剪贴板' : '复制失败，请长按选择'));
     }
     return;
   }
@@ -2143,8 +2070,8 @@ function toast(msg){
 /* ============================================================
    启动
    ============================================================ */
-(async function init(){
-  await loadExternalData();
+(function init(){
+  loadDataFromGlobals();
   Store.checkIn();
   render();
 })();
