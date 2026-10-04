@@ -7,6 +7,7 @@
 <title>日常 Daily</title>
 <script src="./data/decks.js"></script>
 <script src="./data/valve.js"></script>
+<script src="./data/words.js" onerror="window.__wordsJsFailed=true"></script>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--ink:#111827;--sub:#6b7280;--brand:#4f46e5;--brand2:#7c3aed;--ok:#059669;--warn:#b45309;--err:#dc2626;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -300,7 +301,6 @@ SEED.VALVE_ALL = [];
 const DATA_STATUS = { valve: 0, words: 0, decks: 0, valveOk: false, wordsOk: false };
 
 function loadDataFromGlobals(){
-  /* 1. 阀门知识 */
   if (window.__VALVE_DATA && typeof window.__VALVE_DATA === 'object'){
     SEED.VALVE = window.__VALVE_DATA;
     SEED.VALVE_ALL = Object.keys(SEED.VALVE).flatMap(cat =>
@@ -321,11 +321,18 @@ function loadDataFromGlobals(){
     DATA_STATUS.valveOk = false;
   }
 
-  /* 2. 词库元数据 */
   if (Array.isArray(window.__WORD_DECKS) && window.__WORD_DECKS.length > 0){
     SEED.DECKS = window.__WORD_DECKS;
   } else {
     SEED.DECKS = [];
+  }
+
+  if (Array.isArray(window.__WORDS_DATA) && window.__WORDS_DATA.length > 0){
+    window.__WORD_DECK_DATA = window.__WORD_DECK_DATA || {};
+    window.__WORD_DECK_DATA['default'] = window.__WORDS_DATA.map(w => ({ ...w, deck: 'default' }));
+    if (!SEED.DECKS.find(d => d.id === 'default')){
+      SEED.DECKS.unshift({ id:'default', name:'内置词库', icon:'📗', count: window.__WORDS_DATA.length, file:null });
+    }
   }
 
   DATA_STATUS.decks = SEED.DECKS.length;
@@ -337,7 +344,7 @@ function loadDataFromGlobals(){
 }
 
 /* ============================================================
-   词库加载器（懒加载）
+   词库加载器
    ============================================================ */
 const DeckLoader = {
   loaded: {},
@@ -464,6 +471,7 @@ const Store = {
 
   getNote(q){ const v = LS.get('note:' + q, ''); return typeof v === 'string' ? v : ''; },
   setNote(q, text){ if (text && text.trim()) LS.set('note:' + q, text); else LS.del('note:' + q); },
+  appendNote(q, text){ const cur = this.getNote(q); this.setNote(q, cur ? (cur + '\n\n' + text) : text); },
   getAllNotes(){
     const list = [];
     SEED.VALVE_ALL.forEach(v => { const n = LS.get('note:' + v.q, ''); if (n && n.trim()) list.push({ q:v.q, cat:v.cat, note:n }); });
@@ -578,6 +586,12 @@ const Store = {
 
   getGrowth(){ const v = LS.get('growth', {}); return (v && typeof v === 'object') ? v : {}; },
   setGrowth(obj){ LS.set('growth', obj && typeof obj === 'object' ? obj : {}); },
+  getGrowthLog(){ const v = LS.get('growth-log', []); return Array.isArray(v) ? v : []; },
+  pushGrowthLog(entry){
+    const log = this.getGrowthLog();
+    log.unshift(entry);
+    LS.set('growth-log', log.slice(0, 120));
+  },
 
   getAIHistory(){ const v = LS.get('ai-history', []); return Array.isArray(v) ? v : []; },
   addAIHistory(role, content){
@@ -605,11 +619,11 @@ const Store = {
     const notes = {};
     SEED.VALVE_ALL.forEach(v => { const n = LS.get('note:' + v.q, ''); if (n) notes[v.q] = n; });
     const data = {
-      app:'daily', version:21, exportedAt:new Date().toISOString(),
+      app:'daily', version:22, exportedAt:new Date().toISOString(),
       learned:this.getLearned(), thinkAnswers, notes,
       wordDeckMap: LS.get('word-deck-map', {}),
       schedule:{ english:this.getSchedule('english'), work:this.getSchedule('work') },
-      wrongBook:this.getWrongBook(), growth:this.getGrowth(),
+      wrongBook:this.getWrongBook(), growth:this.getGrowth(), growthLog:this.getGrowthLog(),
       streak:this.getStreak(), aiHistory: this.getAIHistory(), studyPlan: this.getStudyPlan(),
       workRecords: LS.get('work-records', [])
     };
@@ -634,6 +648,7 @@ const Store = {
     }
     if (d.wrongBook) LS.set('wrong-book', d.wrongBook);
     if (d.growth) LS.set('growth', d.growth);
+    if (d.growthLog) LS.set('growth-log', d.growthLog);
     if (d.streak) LS.set('streak', d.streak);
     if (d.aiHistory) LS.set('ai-history', d.aiHistory);
     if (d.studyPlan) LS.set('study-plan', d.studyPlan);
@@ -647,7 +662,7 @@ const Store = {
             k.startsWith('note:') || k.startsWith('schedule:') || k.startsWith('expr-') ||
             k.startsWith('know-done:') || k.startsWith('passage-done:') ||
             k.startsWith('news-think-') || k.startsWith('english-deck') ||
-            ['wrong-book','growth','streak','ai-history','study-plan','work-records','word-deck-map'].includes(k)) {
+            ['wrong-book','growth','growth-log','streak','ai-history','study-plan','work-records','word-deck-map'].includes(k)) {
           localStorage.removeItem(k);
         }
       });
@@ -803,7 +818,7 @@ const AI = {
 };
 
 /* ============================================================
-   语音（三层兜底）
+   语音
    ============================================================ */
 let _ttsAudio = null;
 function playOnlineTTS(text, lang, btn){
@@ -820,9 +835,9 @@ function playOnlineTTS(text, lang, btn){
     if (btn){ btn.classList.add('playing'); if (btn.dataset.busy) btn.textContent = btn.dataset.busy; }
     const cleanup = () => { if (btn){ btn.classList.remove('playing'); if (btn.dataset.idle) btn.textContent = btn.dataset.idle; } _ttsAudio = null; };
     audio.onended = cleanup;
-    audio.onerror = () => { cleanup(); toast('在线朗读失败'); };
-    audio.play().catch(err => { cleanup(); toast('播放被拦截'); });
-  }catch(e){ toast('朗读失败'); }
+    audio.onerror = () => { cleanup(); toast('在线朗读失败，请检查网络'); };
+    audio.play().catch(err => { cleanup(); toast('播放被拦截：' + err.message); });
+  }catch(e){ console.warn('在线 TTS 失败：', e); toast('朗读失败'); }
 }
 function stopSpeak(){
   try{ if (window.AndroidBridge && window.AndroidBridge.stopSpeak) window.AndroidBridge.stopSpeak(); }catch(e){}
@@ -896,7 +911,7 @@ function openExternal(url){
     document.body.appendChild(a);
     a.click();
     setTimeout(() => a.remove(), 150);
-  }catch(err){ toast('打开失败'); }
+  }catch(err){ console.warn('打开链接失败：', err); toast('打开失败'); }
 }
 
 /* ============================================================
@@ -921,6 +936,7 @@ const state = {
   aiAnsweringFor:null,
   aiInput:'',
   passageHidden:false,
+  currentWords:[],
   aiRole: LS.get('ai-role', 'engineer'),
   currentSearch: []
 };
@@ -937,15 +953,6 @@ function updateTopbar(){
   const el = document.getElementById('todayLabel');
   if (!el) return;
   el.innerHTML = `${fmtDate()}${s.count > 0 ? `<span class="streak-badge">🔥 ${s.count}天</span>` : ''}<span class="streak-badge" style="background:linear-gradient(135deg,#eef0ff,#f6f0ff);color:#4f46e5;">☑ ${done}/${tasks.length}</span>`;
-}
-
-function renderDeckLoading(msg){
-  return `<div class="loading-card">
-    <div style="font-size:42px;line-height:1;animation:pulse 1.4s ease-in-out infinite;">📚</div>
-    <div style="font-size:14px;font-weight:750;margin-top:14px;margin-bottom:8px;">${esc(msg || '正在加载词库…')}</div>
-    <div style="font-size:12px;color:var(--sub);line-height:1.7;">首次加载大词库可能需要几秒</div>
-    <div class="progress-bar" style="margin-top:16px;"><div style="width:100%;animation:pulse 1.4s ease-in-out infinite;"></div></div>
-  </div>`;
 }
 
 /* ============================================================
@@ -1041,8 +1048,17 @@ function weeklyTestSection(){
 }
 
 /* ============================================================
-   英语（多词库懒加载）
+   英语（多词库 + 懒加载）
    ============================================================ */
+function renderDeckLoading(msg){
+  return `<div class="loading-card">
+    <div style="font-size:42px;line-height:1;animation:pulse 1.4s ease-in-out infinite;">📚</div>
+    <div style="font-size:14px;font-weight:750;margin-top:14px;margin-bottom:8px;">${esc(msg || '正在加载词库…')}</div>
+    <div style="font-size:12px;color:var(--sub);line-height:1.7;">大词库首次加载可能需要几秒钟</div>
+    <div class="progress-bar" style="margin-top:16px;"><div style="width:100%;animation:pulse 1.4s ease-in-out infinite;"></div></div>
+  </div>`;
+}
+
 async function englishSection(){
   const sub = state.englishSub || 'today';
   let curDeck = state.englishDeck;
@@ -1053,13 +1069,13 @@ async function englishSection(){
   }
 
   if (!SEED.DECKS.length){
-    return `<div class="tip-card">还没有配置词库。请确认 data/decks.js 是否正确加载。</div>`;
+    return `<div class="tip-card">还没有配置词库。请在 data/decks.js 里添加词库信息。</div>`;
   }
 
   if (curDeck === 'all'){
     if (!DeckLoader.allLoaded()){
       DeckLoader.loadAll().then(() => render()).catch(() => {});
-      return renderDeckLoading('正在加载全部词库（' + SEED.DECKS.length + ' 个）…');
+      return renderDeckLoading('正在加载全部词库（共 ' + SEED.DECKS.length + ' 个）…');
     }
   } else {
     if (DeckLoader.loaded[curDeck] === undefined){
@@ -1134,8 +1150,10 @@ async function englishSection(){
 
 function englishTodayBlock(deckWords, learnedToday, learnedAll){
   const newWords = deckWords.filter(w => !learnedAll.has(w.w)).slice(0, DAILY_WORD_COUNT);
-  if (newWords.length === 0){
-    return `<div class="card" style="text-align:center;padding:30px 16px;">
+  const allDone = newWords.length === 0;
+  if (allDone){
+    return `
+    <div class="card" style="text-align:center;padding:30px 16px;">
       <div style="font-size:44px;margin-bottom:10px;">🎓</div>
       <div style="font-size:15px;font-weight:750;margin-bottom:8px;">这个词库已全部学完！</div>
       <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">换个词库，或去复习已学的单词。</div>
@@ -1143,9 +1161,9 @@ function englishTodayBlock(deckWords, learnedToday, learnedAll){
     </div>`;
   }
   return `
-  <div class="sec-title">今日新词 <span class="muted">${newWords.length} 个</span></div>
+  <div class="sec-title">今日新词 <span class="muted">${newWords.length} 个 · 点卡片标记</span></div>
   ${newWords.map((w,i) => wordCard(w, i, learnedToday.has(w.w), learnedToday.has(w.w))).join('')}
-  <div class="tip-card">💡 这里显示当前词库中还没学过的前 ${DAILY_WORD_COUNT} 个词，按词表顺序排。</div>`;
+  <div class="tip-card">💡 这里显示的是「当前词库中还没学过」的前 ${DAILY_WORD_COUNT} 个词，按词表顺序排。</div>`;
 }
 
 function englishAllBlock(deckWords, learnedAll, learnedToday){
@@ -1153,6 +1171,12 @@ function englishAllBlock(deckWords, learnedAll, learnedToday){
   const visible = deckWords.slice(0, pageSize);
   const hasMore = deckWords.length > pageSize;
   return `
+  <div class="card" style="padding:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <div style="font-size:13px;font-weight:750;">词库总览</div>
+      <div style="font-size:13px;color:var(--brand);font-weight:750;">${deckWords.length} 词</div>
+    </div>
+  </div>
   <div class="sec-title">全部单词 <span class="muted">显示 ${visible.length}/${deckWords.length}</span></div>
   ${visible.map((w) => {
     const done = learnedAll.has(w.w);
@@ -1164,13 +1188,13 @@ function englishAllBlock(deckWords, learnedAll, learnedToday){
     </div>`;
   }).join('')}
   ${hasMore ? `<button class="load-more" data-act="englishLoadMore">加载更多（还有 ${deckWords.length - pageSize} 个）</button>` : ''}
-  <div class="tip-card">💡 点单词左侧圆圈标记已学。点 🔊 听发音。</div>`;
+  <div class="tip-card">💡 点单词左侧圆圈标记已学。点 🔊 听发音。全部学完后，复习队列会自动加入。</div>`;
 }
 
 function englishLearnedBlock(deckWords, learnedAll){
   const list = deckWords.filter(w => learnedAll.has(w.w));
   if (!list.length){
-    return `<div class="tip-card">这个范围还没有学过任何单词。</div>`;
+    return `<div class="tip-card">这个范围还没有学过任何单词。去「今日新词」或「全部」开始学习吧。</div>`;
   }
   const pageSize = state.englishPage * PAGE_SIZE;
   const visible = list.slice(0, pageSize);
@@ -1195,6 +1219,13 @@ function wordCard(w, i, isDone, isDoneToday){
       </div>
     </div>
     <div style="font-size:14px;color:#333a4d;margin-top:10px;font-weight:600;line-height:1.55;">${esc(w.cn||'')}</div>
+    ${w.scene ? `<div style="margin-top:11px;padding-top:11px;border-top:1px dashed #eceef4;">
+      <div style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:#2b3244;line-height:1.55;">
+        <span style="flex:1">${esc(w.scene)}</span>
+        <button style="border:0;background:#f3f4fa;width:26px;height:26px;border-radius:9px;font-size:12px;cursor:pointer;flex-shrink:0;" data-act="speak" data-text="${esc(w.scene)}" data-lang="en-US">🔊</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--sub);margin-top:5px;">${esc(w.sceneCn||'')}</div>
+    </div>` : ''}
     <button style="position:absolute;top:14px;right:14px;border:0;background:#f3f4fa;width:34px;height:34px;border-radius:11px;font-size:15px;cursor:pointer;" data-act="speak" data-text="${esc(w.w)}" data-lang="en-US">🔊</button>
   </div>`;
 }
@@ -1228,7 +1259,7 @@ function valveSection(){
     <div style="font-size:19px;font-weight:750;margin-bottom:10px;">${SEED.VALVE_ALL.length} 条专业知识</div>
     <div style="font-size:13.5px;opacity:.92;line-height:1.7;">${cats.length - 1} 大类 ${loaded ? '· 数据已加载' : '· 使用内置数据'}</div>
   </div>
-  ${!loaded ? `<div class="tip-card" style="background:#fef3c7;border-color:#fde68a;color:#92400e;">⚠️ valve.js 未加载成功，当前使用内置数据。</div>` : ''}
+  ${!loaded ? `<div class="tip-card" style="background:#fef3c7;border-color:#fde68a;color:#92400e;">⚠️ valve.js 未加载成功，当前使用内置的 ${SEED.VALVE_ALL.length} 条数据。</div>` : ''}
   ${due.length ? `
   <div class="card" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fbbf24;">
     <div style="font-size:13px;font-weight:750;color:#92400e;margin-bottom:8px;">🔁 巩固旧知识（${due.length} 条待复习）</div>
@@ -1251,6 +1282,7 @@ function valveSection(){
   ${list.length ? list.map((v,i) => knowCard(v, i)).join('') : '<div class="tip-card">没有找到。试试别的关键词。</div>'}`;
 }
 
+/* knowCard —— 注意：卡片、按钮都有 data-q，所以按钮的事件处理要用 .know 定位外层 */
 function knowCard(v, i){
   const open = state.openKnow === v.q;
   const note = Store.getNote(v.q);
@@ -1314,7 +1346,7 @@ function logicSection(){
   <div class="card" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:0;">
     <div style="font-size:11px;letter-spacing:1.5px;font-weight:750;opacity:.75;margin-bottom:8px;">THINKING MODELS</div>
     <div style="font-size:19px;font-weight:750;margin-bottom:10px;">5 个思维模型</div>
-    <div style="font-size:13.5px;opacity:.92;line-height:1.7;">今日已练 ${doneCount}/${list.length} 个。</div>
+    <div style="font-size:13.5px;opacity:.92;line-height:1.7;">今日已练 ${doneCount}/${list.length} 个。点卡片展开练习。</div>
   </div>
   ${list.map(m => logicCard(m)).join('')}
   <div class="tip-card">💡 思维模型不是知识，是工具。光看不练等于没学。</div>`;
@@ -1566,6 +1598,7 @@ async function meView(){
     const dataStatus = window.__dataStatus || { valve:0, words:0, decks:0, valveOk:false, wordsOk:false };
     const bridgeOk = !!(window.AndroidBridge);
     const bridgeSpeak = !!(window.AndroidBridge && window.AndroidBridge.speak);
+    const bridgeOpen = !!(window.AndroidBridge && window.AndroidBridge.openUrl);
     const webSpeech = ('speechSynthesis' in window);
     return `
     <div class="hero">
@@ -1591,7 +1624,7 @@ async function meView(){
         <span style="flex:1;color:#4b5265;">已加载词库</span>
         <span style="font-weight:700;color:#047857;">${Object.keys(DeckLoader.loaded).length} / ${SEED.DECKS.length}</span>
       </div>
-      ${!dataStatus.wordsOk ? `<div style="font-size:12px;color:#b45309;line-height:1.7;margin-top:8px;padding:10px 12px;background:#fef3c7;border-radius:10px;">⚠️ 词库未加载。请检查 data/decks.js 是否存在。</div>` : ''}
+      ${!dataStatus.wordsOk ? `<div style="font-size:12px;color:#b45309;line-height:1.7;margin-top:8px;padding:10px 12px;background:#fef3c7;border-radius:10px;">⚠️ 词库未加载。请检查 data/decks.js 和 data/words/*.js 是否存在。</div>` : ''}
     </div>
 
     <div class="card">
@@ -1612,10 +1645,26 @@ async function meView(){
     </div>
 
     <div class="card">
+      <div style="font-size:14px;font-weight:750;margin-bottom:12px;">🔧 环境诊断</div>
+      <div style="font-size:12.5px;line-height:1.9;color:#4b5265;">
+        <div>Android 桥：<b style="color:${bridgeOk?'#047857':'#b45309'};">${bridgeOk?'✓ 存在':'✗ 不存在'}</b></div>
+        <div>桥.speak：<b style="color:${bridgeSpeak?'#047857':'#b45309'};">${bridgeSpeak?'✓ 有':'✗ 无'}</b></div>
+        <div>桥.openUrl：<b style="color:${bridgeOpen?'#047857':'#b45309'};">${bridgeOpen?'✓ 有':'✗ 无'}</b></div>
+        <div>Web Speech：<b style="color:${webSpeech?'#047857':'#b45309'};">${webSpeech?'✓ 支持':'✗ 不支持'}</b></div>
+        <div>在线 TTS：<b style="color:#047857;">✓ 可用（有道）</b></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn ghost" data-act="diagTTS">🔊 测试朗读</button>
+        <button class="btn ghost" data-act="diagOnline">🌐 测试在线TTS</button>
+        <button class="btn ghost" data-act="diagScheme">🔗 测试 weread://</button>
+      </div>
+    </div>
+
+    <div class="card">
       <div style="font-size:14px;font-weight:750;margin-bottom:12px;">📅 累计数据</div>
       <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
         <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.learnedEver}</span>
-        <span style="font-size:13px;color:#4b5265;font-weight:600;">个单词已学过（共 ${stats.totalWords} 词）</span>
+        <span style="font-size:13px;color:#4b5265;font-weight:600;">个单词已学过（共 ${stats.totalWords} 词 · ${stats.totalDecks} 词库）</span>
       </div>
       <div style="display:flex;align-items:baseline;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f1f6;">
         <span style="font-size:22px;font-weight:850;color:var(--brand);min-width:52px;">${stats.dueEnglish}</span>
@@ -1667,6 +1716,7 @@ async function meView(){
         <div style="font-size:13.5px;font-weight:650;line-height:1.5;color:#2b3244;margin-bottom:8px;">${esc(n.q)}</div>
         <div style="font-size:12.5px;line-height:1.7;color:#4b5265;background:#fafbfe;padding:10px 12px;border-radius:10px;white-space:pre-wrap;">${esc(n.note)}</div>
       </div>`).join('')}
+      ${notes.length > 5 ? `<div style="font-size:12px;color:var(--sub);text-align:center;padding-top:10px;">还有 ${notes.length - 5} 条…</div>` : ''}
     </div>` : ''}
 
     <div class="card">
@@ -1692,7 +1742,7 @@ async function meView(){
 
     <div class="card">
       <div style="font-size:14px;font-weight:750;margin-bottom:6px;">数据备份</div>
-      <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">导出时会显示备份文本，你可以复制到其他地方保存。</div>
+      <div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px;">导出时会显示备份文本，你可以复制到其他地方保存。导入时把备份文本粘贴回来。</div>
       <button class="btn primary wide" data-act="exportData">📤 导出备份（复制文本）</button>
       <button class="btn wide" style="background:#f1f2f9;color:#4b5265;margin-top:8px;" data-act="importData">📥 导入备份（粘贴文本）</button>
     </div>
@@ -1706,7 +1756,7 @@ async function meView(){
     <div class="foot-note">数据保存在本设备 · 词库打包在 App 内</div>`;
   }catch(e){
     console.error('meView 渲染失败：', e);
-    return `<div class="tip-card">我的页面加载失败：${esc(e.message)}</div>`;
+    return `<div class="tip-card">我的页面加载失败：${esc(e.message)}<br><br>请把这条错误信息发给开发者。</div>`;
   }
 }
 
@@ -1928,7 +1978,7 @@ function openGlobalSearch(){
       <div class="sheet-emoji">🔍</div>
       <div style="flex:1;min-width:0;">
         <h2>全局搜索</h2>
-        <div class="muted">知识 / 单词 / 笔记</div>
+        <div class="muted">知识 / 单词 / 笔记 / AI 对话</div>
       </div>
     </div>
     <div class="global-search-bar" style="margin-top:14px;">
@@ -1952,6 +2002,7 @@ async function runGlobalSearch(q){
   q = (q || '').trim();
   if (!q){ el.innerHTML = ''; return; }
   const lq = q.toLowerCase();
+
   const results = [];
   SEED.VALVE_ALL.forEach(v => {
     if (v.q.toLowerCase().includes(lq) || v.a.toLowerCase().includes(lq) || (v.key||'').toLowerCase().includes(lq)){
@@ -1960,16 +2011,19 @@ async function runGlobalSearch(q){
   });
 
   if (!DeckLoader.allLoaded()){
+    el.innerHTML = `<div style="text-align:center;padding:20px 0;font-size:12.5px;color:var(--sub);">正在加载全部词库以搜索…</div>`;
     renderResults(results);
     await ensureAllDecksLoaded();
-    if (document.getElementById('globalSearchInput')) return runGlobalSearch(q);
+    if (document.getElementById('globalSearchInput')){
+      return runGlobalSearch(q);
+    }
     return;
   }
 
   const allWords = DeckLoader.get('all');
   allWords.forEach(w => {
     if (w.w.toLowerCase().includes(lq) || (w.cn||'').includes(q)){
-      results.push({ type:'word', typeLabel:'单词', q:w.w, snippet:(w.cn||'') + (w.deck ? ' · ' + w.deck : '') });
+      results.push({ type:'word', typeLabel:'单词', q:w.w, snippet: (w.cn||'') + (w.deck ? ' · ' + w.deck : '') });
     }
   });
 
@@ -2080,9 +2134,11 @@ function doExport(){
       </div>
     </div>
     <div class="sheet-sec">
-      <textarea id="exportText" readonly style="width:100%;height:300px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);">${esc(json)}</textarea>
+      <textarea id="exportText" readonly style="width:100%;height:300px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);-webkit-user-select:text;user-select:text;">${esc(json)}</textarea>
       <button class="btn primary wide" style="margin-top:14px;" data-act="copyExport">📋 复制全部到剪贴板</button>
-      <div style="font-size:11.5px;color:var(--sub);margin-top:10px;text-align:center;">备份文件大小约 ${(json.length/1024).toFixed(1)} KB</div>
+      <div style="font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.7;text-align:center;">
+        备份文件大小约 ${(json.length/1024).toFixed(1)} KB
+      </div>
     </div>
   `);
 }
@@ -2096,7 +2152,7 @@ function doImport(){
       </div>
     </div>
     <div class="sheet-sec">
-      <textarea id="importText" placeholder="在这里粘贴备份 JSON 文本…" style="width:100%;height:300px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);"></textarea>
+      <textarea id="importText" placeholder="在这里粘贴备份 JSON 文本…" style="width:100%;height:300px;font-family:ui-monospace,monospace;font-size:11px;padding:10px;border:1px solid #e6e8f0;border-radius:10px;background:#fafbfe;color:var(--ink);-webkit-user-select:text;user-select:text;"></textarea>
       <button class="btn primary wide" style="margin-top:14px;" data-act="doImportConfirm">导入备份</button>
     </div>
   `);
@@ -2236,10 +2292,17 @@ view.addEventListener('click', async (e) => {
     return;
   }
 
+  /* ============================================================
+     askAbout —— 关键修复：
+     原来用 t.closest('[data-q]')，但按钮自己也有 data-q，
+     所以 closest 返回按钮本身，找不到 textarea。
+     改用 t.closest('.know') 定位外层卡片。
+     ============================================================ */
   if (act === 'askAbout'){
     e.stopPropagation();
     const q = t.dataset.q;
-    const card = t.closest('[data-q]');
+    const card = t.closest('.know') || t.closest('.card');
+    if (!card){ toast('找不到卡片'); return; }
     const input = card.querySelector('[data-qa-q]');
     const question = (input && input.value || '').trim();
     if (!question){ toast('先输入问题'); return; }
@@ -2283,7 +2346,9 @@ view.addEventListener('click', async (e) => {
     const type = t.dataset.type;
     if (type === 'english'){
       toast('加载复习数据…');
-      try { await DeckLoader.ensureForReview(); } catch(err){ console.warn(err); }
+      try {
+        await DeckLoader.ensureForReview();
+      } catch(err){ console.warn(err); }
       const keys = Store.getDueKeys('english');
       const list = keys.map(k => DeckLoader.findWord(k)).filter(Boolean);
       if (!list.length){ toast('暂时没有需要复习的'); return; }
@@ -2400,7 +2465,7 @@ view.addEventListener('click', async (e) => {
       setTimeout(() => a.remove(), 200);
       return;
     }catch(err){ console.warn('裸 scheme 失败：', err); }
-    toast('App 未安装，已打开网页版');
+    toast('App 未安装或无法唤起，已打开网页版');
     if (item.web) openExternal(item.web(name));
     return;
   }
@@ -2422,6 +2487,7 @@ view.addEventListener('click', async (e) => {
     growth.reflection = refl ? refl.value : '';
     growth.tomorrow = tomorrow ? tomorrow.value : '';
     Store.setGrowth(growth);
+    Store.pushGrowthLog({ date: todayStr(), reflection: growth.reflection, tomorrow: growth.tomorrow, t: Date.now() });
     toast('已保存');
     return;
   }
@@ -2467,6 +2533,19 @@ view.addEventListener('click', async (e) => {
 
   if (act === 'setAccent'){ LS.set('voice-accent', t.dataset.accent); render(); return; }
   if (act === 'setSpeed'){ LS.set('voice-speed', +t.dataset.speed); render(); return; }
+
+  if (act === 'diagTTS'){ toggleSpeak('Hello, this is a test. 测试朗读。', 'en-US'); return; }
+  if (act === 'diagOnline'){ playOnlineTTS('Hello, this is an online TTS test.', 'en-US'); return; }
+  if (act === 'diagScheme'){
+    const a = document.createElement('a');
+    a.href = 'weread://';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => a.remove(), 200);
+    toast('已尝试打开微信读书。无反应=WebView 拦截了 scheme');
+    return;
+  }
 
   if (act === 'exportData'){ doExport(); return; }
   if (act === 'importData'){ doImport(); return; }
